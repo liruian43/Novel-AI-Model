@@ -41,7 +41,7 @@ configCommand
 configCommand
   .command("set-global")
   .description("Set global LLM config (~/.inkos/.env), shared by all projects")
-  .requiredOption("--provider <provider>", "LLM provider (openai / anthropic)")
+  .requiredOption("--provider <provider>", "LLM provider (openai / anthropic / aliyun / custom)")
   .requiredOption("--base-url <url>", "API base URL")
   .requiredOption("--api-key <key>", "API key")
   .requiredOption("--model <model>", "Model name")

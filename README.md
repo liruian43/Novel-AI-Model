@@ -341,16 +341,36 @@ inkos init my-novel     # 初始化项目
 
 ```bash
 # 必填
-INKOS_LLM_PROVIDER=openai                        # openai / anthropic
+INKOS_LLM_PROVIDER=openai                        # openai / anthropic / aliyun / custom
+                                                   # - openai: OpenAI GPT 系列
+                                                   # - anthropic: Anthropic Claude 系列
+                                                   # - aliyun: 阿里云通义千问 (Qwen) ⭐新增
+                                                   # - custom: 自定义大模型 (OpenAI 兼容) ⭐新增
 INKOS_LLM_BASE_URL=https://api.openai.com/v1     # API 地址（支持中转站）
+                                                   # 通义千问：https://dashscope.aliyuncs.com/compatible-mode/v1
 INKOS_LLM_API_KEY=sk-xxx                          # API Key
 INKOS_LLM_MODEL=gpt-4o                            # 模型名
+                                                   # 通义千问：qwen-plus / qwen-max / qwen-turbo
 
 # 可选
 # INKOS_LLM_TEMPERATURE=0.7                       # 温度
 # INKOS_LLM_MAX_TOKENS=8192                        # 最大输出 token
 # INKOS_LLM_THINKING_BUDGET=0                      # Anthropic 扩展思考预算
 ```
+
+**常用模型推荐**:
+
+| 提供商 | 模型 | 特点 | 适用场景 |
+|--------|------|------|----------|
+| **OpenAI** | gpt-4o | 综合能力最强 | 高质量长篇创作 |
+| | gpt-4-turbo | 性价比高 | 日常连载 |
+| | gpt-3.5-turbo | 经济实惠 | 快速生成草稿 |
+| **Anthropic** | claude-3-5-sonnet-20241022 | 文本自然度高 | 文学创作 |
+| | claude-3-opus-20240229 | 上下文理解强 | 复杂剧情 |
+| **阿里云** ⭐ | qwen-plus | 中文能力强，性价比高 | 日常写作推荐 |
+| | qwen-max | 最强性能 | 复杂场景 |
+| | qwen-turbo | 速度快，成本低 | 快速生成 |
+| **自定义** | 任意 OpenAI 兼容模型 | 灵活定制 | 本地部署/第三方服务 |
 
 项目 `.env` 会覆盖全局配置。不需要覆盖时可以不写。
 
@@ -401,6 +421,63 @@ inkos up                       # 守护进程模式
 | `inkos up / down` | 启动/停止守护进程 |
 
 `[id]` 参数在项目只有一本书时可省略，自动检测。所有命令支持 `--json` 输出结构化数据。`draft`/`write next`/`book create` 支持 `--context` 传入创作指导，`--words` 覆盖每章字数（OpenClaw 可逐章动态控制）。
+
+## LLM 提供商配置 ⭐
+
+InkOS 支持多种大语言模型提供商：
+
+### OpenAI (GPT 系列)
+```bash
+INKOS_LLM_PROVIDER=openai
+INKOS_LLM_BASE_URL=https://api.openai.com/v1
+INKOS_LLM_MODEL=gpt-4o
+```
+
+### Anthropic (Claude 系列)
+```bash
+INKOS_LLM_PROVIDER=anthropic
+INKOS_LLM_BASE_URL=https://api.anthropic.com
+INKOS_LLM_MODEL=claude-3-5-sonnet-20241022
+```
+
+### 阿里云通义千问 (Qwen) ⭐ 新增
+```bash
+INKOS_LLM_PROVIDER=aliyun
+INKOS_LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+INKOS_LLM_MODEL=qwen-plus        # 或 qwen-max, qwen-turbo
+```
+
+**开通步骤**:
+1. 访问 [阿里云百炼平台](https://bailian.console.aliyun.com/)
+2. 注册/登录阿里云账号
+3. 进入"API-KEY 管理"创建新的 API Key
+4. 确保开通 Qwen 模型服务
+5. 复制 API Key 到配置文件
+
+**推荐模型**:
+- `qwen-plus`: 性价比高，推荐用于日常写作
+- `qwen-max`: 最强性能，适合复杂场景
+- `qwen-turbo`: 速度快，成本低
+
+### 自定义大模型 (Custom) ⭐ 新增
+```bash
+INKOS_LLM_PROVIDER=custom
+INKOS_LLM_BASE_URL=<你的自定义 API 地址>
+INKOS_LLM_MODEL=<你的模型名称>
+```
+
+**适用场景**:
+- 本地部署的开源模型 (Ollama, vLLM, LocalAI 等)
+- 其他第三方 OpenAI 兼容服务 (DeepSeek, Moonshot, 智谱 AI 等)
+- 企业私有化部署模型
+
+**常见兼容服务示例**:
+- **Ollama**: `http://localhost:11434/v1`
+- **DeepSeek**: `https://api.deepseek.com/v1`
+- **Moonshot**: `https://api.moonshot.cn/v1`
+- **智谱 AI**: `https://open.bigmodel.cn/api/paas/v4`
+
+详细配置说明请查看 [LLM 配置指南](LLM 配置指南.md)。
 
 ## 实测数据
 
