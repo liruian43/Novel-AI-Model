@@ -581,40 +581,125 @@
             gap: 16px;
         }
 
+        /* 真相文件详细平铺卡片 */
+        .truth-files-detailed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
         .truth-file-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
-            cursor: pointer;
+            border-radius: 12px;
+            padding: 20px;
             transition: all 0.3s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 450px;
         }
 
         .truth-file-card:hover {
             border-color: var(--primary-color);
-            box-shadow: 0 4px 12px rgba(74,158,255,0.15);
+            box-shadow: 0 8px 24px rgba(74,158,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .truth-file-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .truth-file-icon {
             width: 48px;
             height: 48px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .truth-file-title-area {
+            flex: 1;
+            min-width: 0;
         }
 
         .truth-file-name {
             font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
             margin-bottom: 4px;
         }
 
-        .truth-file-desc {
-            font-size: 13px;
+        .truth-file-status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-example { background: #faad14; color: white; }
+        .status-empty { background: #91d5ff; color: white; }
+        .status-ready { background: #52c41a; color: white; }
+        .status-error { background: #ff4d4f; color: white; }
+
+        .truth-file-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .truth-file-content-area {
+            flex: 1;
+            background: var(--bg-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        }
+
+        .truth-file-content-header {
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.03);
+            font-size: 12px;
+            font-weight: 600;
             color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .truth-file-md-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+        }
+
+        .truth-file-editor-textarea {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            resize: none;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            outline: none;
+            background: transparent;
         }
 
         /* Pipeline Steps */
@@ -771,6 +856,43 @@
         .feature-desc {
             font-size: 14px;
             color: var(--text-secondary);
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 24px;
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
         }
 
         /* Toast Notifications */
@@ -1179,7 +1301,12 @@
 
                         <div class="form-group">
                             <label class="form-label">本章创作指导（可选）</label>
-                            <textarea class="form-control" id="write-context" placeholder="输入本章的重点内容、剧情走向等指导信息..."></textarea>
+                            <textarea class="form-control" id="write-context" placeholder="输入本章的重点内容、剧情走向等指导信息..." style="min-height: 100px;"></textarea>
+                            <div style="margin-top: 8px; display: flex; align-items: center; gap: 12px;">
+                                <input type="file" class="form-control" id="write-context-file" accept=".txt,.md" style="flex: 1;">
+                                <button class="btn btn-outline btn-sm" onclick="loadContextFile()" id="load-context-btn">📄 加载文件</button>
+                            </div>
+                            <small style="color: var(--text-secondary);">💡 上传 TXT 或 MD 文件作为本章的详细指导，AI 将结合当前世界状态和您的指导进行创作</small>
                         </div>
 
                         <div class="grid grid-3">
@@ -1382,7 +1509,7 @@
             <section id="page-truth-files" class="page-section">
                 <div class="page-header">
                     <h1 class="page-title">真相文件</h1>
-                    <p class="page-description">查看和管理长期记忆文件</p>
+                    <p class="page-description">实时查看和编辑 7 个长期记忆文件内容</p>
                 </div>
 
                 <div class="card">
@@ -1393,20 +1520,139 @@
                         <select class="form-control" id="truth-book-select" onchange="loadTruthFiles()">
                             <option value="">请选择一本书籍...</option>
                         </select>
+                        <small style="color: var(--text-secondary); margin-top: 8px; display: block;">
+                            💡 未选择书籍时显示空白窗口，选择书籍后会自动加载实际的 MD 文件内容（如果已生成）
+                        </small>
                     </div>
                 </div>
 
-                <div id="truth-files-container" style="display: none;">
-                    <div class="truth-files-grid" id="truth-files-grid">
-                        <!-- Dynamically filled -->
+                <!-- 七个真相文件平铺显示 - 始终显示 -->
+                <div id="truth-files-grid" class="truth-files-detailed-grid">
+                    <!-- 文件 1: current_state.md -->
+                    <div class="truth-file-card" id="truth-card-current_state.md" onclick="openTruthFileEditor('current_state.md')">
+                        <div class="truth-file-header">
+                            <div class="truth-file-icon">📊</div>
+                            <div class="truth-file-title-area">
+                                <div class="truth-file-name">世界状态快照</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">current_state.md</div>
+                            </div>
+                            <span class="truth-file-status-badge status-empty" id="status-current_state.md">等待选择书籍</span>
+                        </div>
+                        <div class="truth-file-content-area">
+                            <div class="truth-file-content-header">📄 文件内容 <span style="float:right;font-size:11px;color:var(--text-secondary);">点击展开编辑</span></div>
+                            <div class="truth-file-md-content" id="content-current_state.md" style="color:var(--text-secondary);text-align:center;padding-top:50px;">
+                                💡 请先在上方选择一本书籍<br><br>
+                                <small>真相文件会在 AI 写作时自动生成</small>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="card" id="truth-file-viewer" style="display: none; margin-top: 20px;">
-                        <div class="card-header">
-                            <h2 class="card-title" id="truth-file-title">文件查看</h2>
-                            <button class="btn btn-outline btn-sm" onclick="closeTruthFileViewer()">关闭</button>
+                    <!-- 文件 2: particle_ledger.md -->
+                    <div class="truth-file-card" id="truth-card-particle_ledger.md" onclick="openTruthFileEditor('particle_ledger.md')">
+                        <div class="truth-file-header">
+                            <div class="truth-file-icon">💰</div>
+                            <div class="truth-file-title-area">
+                                <div class="truth-file-name">资源账本</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">particle_ledger.md</div>
+                            </div>
+                            <span class="truth-file-status-badge status-empty" id="status-particle_ledger.md">等待选择书籍</span>
                         </div>
-                        <div class="code-block" id="truth-file-content" style="white-space: pre-wrap; min-height: 400px;"></div>
+                        <div class="truth-file-content-area">
+                            <div class="truth-file-content-header">📄 文件内容 <span style="float:right;font-size:11px;color:var(--text-secondary);">点击展开编辑</span></div>
+                            <div class="truth-file-md-content" id="content-particle_ledger.md" style="color:var(--text-secondary);text-align:center;padding-top:50px;">
+                                💡 请先在上方选择一本书籍
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件 3: pending_hooks.md -->
+                    <div class="truth-file-card" id="truth-card-pending_hooks.md" onclick="openTruthFileEditor('pending_hooks.md')">
+                        <div class="truth-file-header">
+                            <div class="truth-file-icon">🎣</div>
+                            <div class="truth-file-title-area">
+                                <div class="truth-file-name">未闭合伏笔</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">pending_hooks.md</div>
+                            </div>
+                            <span class="truth-file-status-badge status-empty" id="status-pending_hooks.md">等待选择书籍</span>
+                        </div>
+                        <div class="truth-file-content-area">
+                            <div class="truth-file-content-header">📄 文件内容 <span style="float:right;font-size:11px;color:var(--text-secondary);">点击展开编辑</span></div>
+                            <div class="truth-file-md-content" id="content-pending_hooks.md" style="color:var(--text-secondary);text-align:center;padding-top:50px;">
+                                💡 请先在上方选择一本书籍
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件 4: chapter_summaries.md -->
+                    <div class="truth-file-card" id="truth-card-chapter_summaries.md" onclick="openTruthFileEditor('chapter_summaries.md')">
+                        <div class="truth-file-header">
+                            <div class="truth-file-icon">📝</div>
+                            <div class="truth-file-title-area">
+                                <div class="truth-file-name">各章摘要</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">chapter_summaries.md</div>
+                            </div>
+                            <span class="truth-file-status-badge status-empty" id="status-chapter_summaries.md">等待选择书籍</span>
+                        </div>
+                        <div class="truth-file-content-area">
+                            <div class="truth-file-content-header">📄 文件内容 <span style="float:right;font-size:11px;color:var(--text-secondary);">点击展开编辑</span></div>
+                            <div class="truth-file-md-content" id="content-chapter_summaries.md" style="color:var(--text-secondary);text-align:center;padding-top:50px;">
+                                💡 请先在上方选择一本书籍
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件 5: subplot_board.md -->
+                    <div class="truth-file-card" id="truth-card-subplot_board.md" onclick="openTruthFileEditor('subplot_board.md')">
+                        <div class="truth-file-header">
+                            <div class="truth-file-icon">🔀</div>
+                            <div class="truth-file-title-area">
+                                <div class="truth-file-name">支线进度板</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">subplot_board.md</div>
+                            </div>
+                            <span class="truth-file-status-badge status-empty" id="status-subplot_board.md">等待选择书籍</span>
+                        </div>
+                        <div class="truth-file-content-area">
+                            <div class="truth-file-content-header">📄 文件内容 <span style="float:right;font-size:11px;color:var(--text-secondary);">点击展开编辑</span></div>
+                            <div class="truth-file-md-content" id="content-subplot_board.md" style="color:var(--text-secondary);text-align:center;padding-top:50px;">
+                                💡 请先在上方选择一本书籍
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件 6: emotional_arcs.md -->
+                    <div class="truth-file-card" id="truth-card-emotional_arcs.md" onclick="openTruthFileEditor('emotional_arcs.md')">
+                        <div class="truth-file-header">
+                            <div class="truth-file-icon">❤️</div>
+                            <div class="truth-file-title-area">
+                                <div class="truth-file-name">情感弧线</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">emotional_arcs.md</div>
+                            </div>
+                            <span class="truth-file-status-badge status-empty" id="status-emotional_arcs.md">等待选择书籍</span>
+                        </div>
+                        <div class="truth-file-content-area">
+                            <div class="truth-file-content-header">📄 文件内容 <span style="float:right;font-size:11px;color:var(--text-secondary);">点击展开编辑</span></div>
+                            <div class="truth-file-md-content" id="content-emotional_arcs.md" style="color:var(--text-secondary);text-align:center;padding-top:50px;">
+                                💡 请先在上方选择一本书籍
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件 7: character_matrix.md -->
+                    <div class="truth-file-card" id="truth-card-character_matrix.md" onclick="openTruthFileEditor('character_matrix.md')">
+                        <div class="truth-file-header">
+                            <div class="truth-file-icon">👥</div>
+                            <div class="truth-file-title-area">
+                                <div class="truth-file-name">角色交互矩阵</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">character_matrix.md</div>
+                            </div>
+                            <span class="truth-file-status-badge status-empty" id="status-character_matrix.md">等待选择书籍</span>
+                        </div>
+                        <div class="truth-file-content-area">
+                            <div class="truth-file-content-header">📄 文件内容 <span style="float:right;font-size:11px;color:var(--text-secondary);">点击展开编辑</span></div>
+                            <div class="truth-file-md-content" id="content-character_matrix.md" style="color:var(--text-secondary);text-align:center;padding-top:50px;">
+                                💡 请先在上方选择一本书籍
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1572,41 +1818,107 @@
                         <h2 class="card-title">真相文件说明</h2>
                     </div>
                     
-                    <div class="truth-files-grid">
-                        <div class="truth-file-card">
-                            <div class="truth-file-icon">📊</div>
-                            <div class="truth-file-name">current_state.md</div>
-                            <div class="truth-file-desc">世界状态：角色位置、关系网络、已知信息、情感弧线</div>
+                    <div class="alert alert-info" style="margin-bottom: 20px;">
+                        💡 <strong>提示：</strong>真相文件会在 AI 写作时自动生成和更新。前往"真相文件"页面可以查看和编辑这些文件的实时内容。
+                    </div>
+                    
+                    <div class="grid grid-2">
+                        <div class="card" style="margin-bottom: 0;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div class="truth-file-icon" style="width:48px;height:48px;font-size:24px;margin:0;">📊</div>
+                                <h4 style="margin:0;">current_state.md</h4>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px;"><strong>世界状态快照</strong></p>
+                            <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                                <li>角色位置追踪</li>
+                                <li>关系网络图</li>
+                                <li>已知信息/秘密</li>
+                                <li>情感弧线状态</li>
+                            </ul>
                         </div>
-                        <div class="truth-file-card">
-                            <div class="truth-file-icon">💰</div>
-                            <div class="truth-file-name">particle_ledger.md</div>
-                            <div class="truth-file-desc">资源账本：物品、金钱、物资数量及衰减追踪</div>
+                        
+                        <div class="card" style="margin-bottom: 0;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div class="truth-file-icon" style="width:48px;height:48px;font-size:24px;margin:0;">💰</div>
+                                <h4 style="margin:0;">particle_ledger.md</h4>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px;"><strong>资源账本</strong></p>
+                            <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                                <li>货币/物品追踪</li>
+                                <li>资源数量变化</li>
+                                <li>衰减率计算</li>
+                                <li>物资库存清单</li>
+                            </ul>
                         </div>
-                        <div class="truth-file-card">
-                            <div class="truth-file-icon">🎣</div>
-                            <div class="truth-file-name">pending_hooks.md</div>
-                            <div class="truth-file-desc">未闭合伏笔：铺垫、对读者的承诺、未解决冲突</div>
+                        
+                        <div class="card" style="margin-bottom: 0;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div class="truth-file-icon" style="width:48px;height:48px;font-size:24px;margin:0;">🎣</div>
+                                <h4 style="margin:0;">pending_hooks.md</h4>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px;"><strong>未闭合伏笔</strong></p>
+                            <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                                <li>紧急伏笔（3 章内）</li>
+                                <li>中期伏笔（5-10 章）</li>
+                                <li>长期伏笔（10 章+）</li>
+                                <li>未解决冲突</li>
+                            </ul>
                         </div>
-                        <div class="truth-file-card">
-                            <div class="truth-file-icon">📝</div>
-                            <div class="truth-file-name">chapter_summaries.md</div>
-                            <div class="truth-file-desc">各章摘要：出场人物、关键事件、状态变化、伏笔动态</div>
+                        
+                        <div class="card" style="margin-bottom: 0;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div class="truth-file-icon" style="width:48px;height:48px;font-size:24px;margin:0;">📝</div>
+                                <h4 style="margin:0;">chapter_summaries.md</h4>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px;"><strong>各章摘要</strong></p>
+                            <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                                <li>出场人物列表</li>
+                                <li>关键事件记录</li>
+                                <li>状态变化追踪</li>
+                                <li>伏笔动态更新</li>
+                            </ul>
                         </div>
-                        <div class="truth-file-card">
-                            <div class="truth-file-icon">🔀</div>
-                            <div class="truth-file-name">subplot_board.md</div>
-                            <div class="truth-file-desc">支线进度板：A/B/C 线状态、停滞检测</div>
+                        
+                        <div class="card" style="margin-bottom: 0;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div class="truth-file-icon" style="width:48px;height:48px;font-size:24px;margin:0;">🔀</div>
+                                <h4 style="margin:0;">subplot_board.md</h4>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px;"><strong>支线进度板</strong></p>
+                            <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                                <li>A/B/C 线状态</li>
+                                <li>最近活跃章节</li>
+                                <li>停滞检测警告</li>
+                                <li>多线并行追踪</li>
+                            </ul>
                         </div>
-                        <div class="truth-file-card">
-                            <div class="truth-file-icon">❤️</div>
-                            <div class="truth-file-name">emotional_arcs.md</div>
-                            <div class="truth-file-desc">情感弧线：按角色追踪情绪变化和成长</div>
+                        
+                        <div class="card" style="margin-bottom: 0;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div class="truth-file-icon" style="width:48px;height:48px;font-size:24px;margin:0;">❤️</div>
+                                <h4 style="margin:0;">emotional_arcs.md</h4>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px;"><strong>情感弧线</strong></p>
+                            <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                                <li>角色情绪追踪</li>
+                                <li>触发事件记录</li>
+                                <li>成长里程碑</li>
+                                <li>弧线完成度</li>
+                            </ul>
                         </div>
-                        <div class="truth-file-card">
-                            <div class="truth-file-icon">👥</div>
-                            <div class="truth-file-name">character_matrix.md</div>
-                            <div class="truth-file-desc">角色交互矩阵：相遇记录、信息边界</div>
+                        
+                        <div class="card" style="margin-bottom: 0;grid-column: span 2;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div class="truth-file-icon" style="width:48px;height:48px;font-size:24px;margin:0;">👥</div>
+                                <h4 style="margin:0;">character_matrix.md</h4>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:8px;"><strong>角色交互矩阵</strong></p>
+                            <ul style="padding-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                                <li>相遇历史记录</li>
+                                <li>关系演变过程</li>
+                                <li>信息边界管理（谁知道什么）</li>
+                                <li>群体动态/秘密网络</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -1648,6 +1960,32 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Truth File Full Screen Editor Modal -->
+    <div class="modal-overlay" id="truth-file-editor-modal" style="z-index: 10001;">
+        <div class="modal" style="max-width: 90%; width: 1200px; height: 90vh;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="truth-editor-title">编辑真相文件</h3>
+                <button class="modal-close" onclick="closeTruthFileEditor()">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; height: calc(90vh - 80px);">
+                <!-- Toolbar -->
+                <div style="display: flex; gap: 10px; margin-bottom: 16px; padding: 12px; background: var(--bg-color); border-radius: 8px;">
+                    <button class="btn btn-primary" onclick="saveTruthFileFromEditor()">💾 保存修改</button>
+                    <button class="btn btn-success" onclick="insertTemplateContent()">📝 插入模板</button>
+                    <button class="btn btn-outline" onclick="togglePreviewMode()">👁️ 预览/编辑</button>
+                    <button class="btn btn-outline" onclick="closeTruthFileEditor()">✕ 关闭</button>
+                    <span id="save-status" style="margin-left: auto; display: flex; align-items: center; color: var(--text-secondary);"></span>
+                </div>
+                
+                <!-- Editor Area -->
+                <textarea class="form-control" id="truth-full-editor" style="flex: 1; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; resize: none; min-height: 400px;"></textarea>
+                
+                <!-- Preview Area (hidden by default) -->
+                <div id="truth-preview" style="flex: 1; overflow-y: auto; display: none; padding: 20px; background: white; border: 1px solid var(--border-color); border-radius: 8px;" class="code-block"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Create Book Modal -->
@@ -1698,9 +2036,19 @@
                     <label class="form-label">简介/大纲</label>
                     <textarea class="form-control" id="new-book-description" placeholder="简要描述故事背景、主线剧情等..." style="min-height: 100px;"></textarea>
                 </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        导入详细设定文档（可选）
+                        <span class="help-tip" title="上传包含世界观、角色设定、剧情大纲等的详细文档，AI 将基于此生成基础架构">?</span>
+                    </label>
+                    <input type="file" class="form-control" id="new-book-setting-file" accept=".txt,.md">
+                    <small style="color: var(--text-secondary);">支持 TXT 或 MD 格式，建议 5000 字以上</small>
+                </div>
 
                 <div class="alert alert-info">
-                    ℹ️ 创建成功后将自动生成书籍配置文件、世界设定和初始真相文件
+                    ℹ️ 创建成功后将自动生成书籍配置文件、世界设定和初始真相文件<br>
+                    💡 如果上传了设定文档，AI 会基于您的设定生成更贴合的世界观和角色关系
                 </div>
             </div>
             <div class="modal-footer">
@@ -1731,7 +2079,37 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loading-text">正在初始化...</div>
+    </div>
+
     <script>
+        // ==================== Utility Functions ====================
+        function showLoadingScreen(message) {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingText = document.getElementById('loading-text');
+            if (loadingText && message) {
+                loadingText.textContent = message;
+            }
+            if (loadingScreen) {
+                loadingScreen.classList.remove('hidden');
+            }
+        }
+
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+            }
+        }
+
+        // ==================== Server Configuration ====================
+        const SERVER_URL = 'http://localhost:3000';
+        let isConnected = false;
+        let projectPath = null;
+
         // ==================== Global State ====================
         const APP_STATE = {
             books: [],
@@ -1750,48 +2128,158 @@
         };
 
         // ==================== Initialization ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            loadFromStorage();
-            setupNavigation();
-            setupNotifyTypeChange();
-            renderBooksList();
-            updateBookSelects();
-            
-            // Show welcome toast if first time
-            if (!APP_STATE.config.apiKey) {
-                showToast('info', '欢迎使用 InkOS Studio！请先在"配置管理"页面设置 API 配置');
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Step 1: 不自动连接 HTTP 服务（按需启动）
+                showLoadingScreen('正在初始化...');
+                console.log('ℹ️ HTTP 服务将在编辑真相文件时按需启动');
+                
+                // Step 2: 从本地存储加载数据（立即可用）
+                loadFromStorage();
+                
+                // Step 3: 加载项目路径（可选，没有也不影响使用）
+                projectPath = localStorage.getItem('inkos_project_path');
+                
+                if (projectPath) {
+                    // 如果有项目路径，显示提示
+                    console.log('📁 检测到项目路径:', projectPath);
+                }
+
+                // Step 4: Setup UI（必须执行，否则按钮无反应）
+                setupNavigation();
+                setupNotifyTypeChange();
+                renderBooksList();
+                updateBookSelects();
+                
+                // 初始化真相文件页面（始终显示 7 个窗口）
+                loadTruthFiles();
+
+                // Step 5: Hide loading screen（立即隐藏加载屏幕）
+                hideLoadingScreen();
+                console.log('✅ 就绪！');
+
+                // Show welcome toast
+                if (!APP_STATE.config.apiKey) {
+                    showToast('info', '欢迎使用 InkOS Studio！请先在"配置管理"页面设置 API 配置');
+                }
+
+            } catch (error) {
+                console.error('启动失败:', error);
+                // 即使出错也隐藏加载屏幕，让用户能使用界面
+                hideLoadingScreen();
+                
+                // 仍然要设置 UI，否则按钮无反应
+                try {
+                    setupNavigation();
+                    renderBooksList();
+                    updateBookSelects();
+                } catch(e) {
+                    console.error('UI 初始化失败:', e);
+                }
+                
+                showToast('warning', '部分功能初始化失败，但基础功能可用');
             }
+
+            // Listen for page close
+            window.addEventListener('beforeunload', disconnectFromServer);
         });
 
-        // ==================== Storage Functions ====================
-        function loadFromStorage() {
+        // ==================== Server Connection Functions ====================
+        async function connectToServer() {
             try {
-                const savedState = localStorage.getItem('inkos_studio_state');
-                if (savedState) {
-                    const parsed = JSON.parse(savedState);
-                    Object.assign(APP_STATE, parsed);
+                const response = await fetch(`${SERVER_URL}/connect`, { 
+                    mode: 'cors',
+                    timeout: 5000
+                });
+                if (!response.ok) {
+                    throw new Error('无法连接到服务');
                 }
-            } catch (e) {
-                console.error('Failed to load from storage:', e);
+                const data = await response.json();
+                console.log('服务器连接成功，活跃客户端:', data.clients);
+            } catch (error) {
+                throw new Error('无法连接到本地服务，请先运行 start.bat');
             }
         }
 
-        function saveToStorage() {
+        async function disconnectFromServer() {
+            if (!isConnected) return;
+            
             try {
-                localStorage.setItem('inkos_studio_state', JSON.stringify(APP_STATE));
+                await fetch(`${SERVER_URL}/disconnect`, { 
+                    method: 'GET',
+                    keepalive: true,
+                    mode: 'cors'
+                });
+                console.log('✅ 已断开与服务连接');
             } catch (e) {
-                console.error('Failed to save to storage:', e);
+                console.log('断开连接失败:', e.message);
             }
+            
+            isConnected = false;
+        }
+
+        async function setProjectPath(path) {
+            const response = await fetch(`${SERVER_URL}/set-project`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
+                body: JSON.stringify({ path })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || '设置项目路径失败');
+            }
+        }
+
+        async function promptProjectPath() {
+            return new Promise((resolve) => {
+                const defaultPath = 'E:\\我的小说\\吞天魔帝';
+                const path = prompt(
+                    '请选择项目文件夹路径（包含 books 目录的文件夹）:\n\n例如：E:\\我的小说\\吞天魔帝',
+                    defaultPath
+                );
+                resolve(path ? path.trim() : null);
+            });
+        }
+
+        async function loadAllBooks() {
+            const response = await fetch(`${SERVER_URL}/list-books`, { mode: 'cors' });
+            if (!response.ok) {
+                throw new Error('加载书籍列表失败');
+            }
+            
+            const data = await response.json();
+            
+            APP_STATE.books = data.books.map(book => ({
+                id: book.id,
+                title: book.title || book.name,
+                genre: book.genre || 'other',
+                protagonist: book.protagonist || '',
+                chapterWords: 5000,
+                targetChapters: 100,
+                createdAt: new Date().toISOString(),
+                status: 'ongoing',
+                currentChapter: 0,
+                totalWords: 0,
+                chapters: []
+            }));
+
+            renderBooksList();
         }
 
         // ==================== Navigation ====================
         function setupNavigation() {
+            // 为侧边栏导航项添加点击事件
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function() {
-                    const page = this.dataset.page;
-                    showPage(page);
+                    const pageName = this.dataset.page;
+                    if (pageName) {
+                        showPage(pageName);
+                    }
                 });
             });
+            console.log('✅ 导航初始化完成');
         }
 
         function showPage(pageName) {
@@ -1830,58 +2318,80 @@
             document.getElementById('new-book-description').value = '';
         }
 
-        function createBook() {
+        async function createBook() {
             const title = document.getElementById('new-book-title').value.trim();
             const genre = document.getElementById('new-book-genre').value;
             const protagonist = document.getElementById('new-book-protagonist').value.trim();
             const chapterWords = parseInt(document.getElementById('new-book-chapter-words').value);
             const targetChapters = parseInt(document.getElementById('new-book-target-chapters').value);
             const description = document.getElementById('new-book-description').value.trim();
+            
+            // Handle setting file upload
+            const settingFileInput = document.getElementById('new-book-setting-file');
+            let settingContent = null;
+            
+            if (settingFileInput.files.length > 0) {
+                settingContent = await readFileAsText(settingFileInput.files[0]);
+            }
 
             if (!title) {
                 showToast('error', '请输入书名');
                 return;
             }
 
-            const bookId = 'book_' + Date.now();
-            const book = {
-                id: bookId,
-                title,
-                genre,
-                protagonist,
-                chapterWords,
-                targetChapters,
-                description,
-                createdAt: new Date().toISOString(),
-                status: 'ongoing',
-                currentChapter: 0,
-                totalWords: 0,
-                chapters: []
-            };
-
-            APP_STATE.books.push(book);
-            
-            // Initialize truth files
-            initializeTruthFiles(bookId);
-            
-            saveToStorage();
-            closeCreateBookModal();
-            renderBooksList();
-            updateBookSelects();
-            
-            showToast('success', `《${title}》创建成功！`);
-        }
-
-        function initializeTruthFiles(bookId) {
-            APP_STATE.truthFiles[bookId] = {
-                'current_state.md': '# 当前世界状态\n\n## 角色位置\n\n## 关系网络\n\n## 已知信息\n\n## 情感弧线\n',
-                'particle_ledger.md': '# 资源账本\n\n## 物品\n\n## 金钱\n\n## 物资\n',
-                'pending_hooks.md': '# 未闭合伏笔\n\n## 铺垫\n\n## 承诺\n\n## 未解决冲突\n',
-                'chapter_summaries.md': '# 章节摘要\n\n',
-                'subplot_board.md': '# 支线进度板\n\n## A 线\n\n## B 线\n\n## C 线\n',
-                'emotional_arcs.md': '# 情感弧线\n\n',
-                'character_matrix.md': '# 角色交互矩阵\n\n'
-            };
+            try {
+                const bookId = 'book_' + Date.now();
+                
+                // 通过 HTTP API 创建书籍
+                const response = await fetch(`${SERVER_URL}/create-book`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'cors',
+                    body: JSON.stringify({ 
+                        bookId, 
+                        title, 
+                        genre,
+                        settingContent
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || '创建失败');
+                }
+                
+                // 如果有设定文档，上传到服务器
+                if (settingContent) {
+                    await fetch(`${SERVER_URL}/write-file`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        mode: 'cors',
+                        body: JSON.stringify({ 
+                            bookId, 
+                            fileName: 'book_setting.md',
+                            content: `# 书籍设定文档\n\n> 此文档由用户导入，包含详细的世界观、角色设定和剧情大纲\n\n---\n\n${settingContent}`,
+                            fileType: 'truth'
+                        })
+                    });
+                }
+                
+                closeCreateBookModal();
+                
+                // 重新加载书籍列表
+                await loadAllBooks();
+                renderBooksList();
+                updateBookSelects();
+                
+                if (settingContent) {
+                    showToast('success', `✅ 《${title}》创建成功！\n📄 已导入设定文档，AI 将基于此生成基础架构`);
+                } else {
+                    showToast('success', `《${title}》创建成功！`);
+                }
+                
+            } catch (error) {
+                console.error('创建书籍失败:', error);
+                showToast('error', `创建失败：${error.message}`);
+            }
         }
 
         function renderBooksList() {
@@ -1952,21 +2462,203 @@
             const book = APP_STATE.books.find(b => b.id === bookId);
             if (!book) return;
 
-            const content = `# ${book.title}\n\n**题材**: ${getGenreName(book.genre)}\n**主角**: ${book.protagonist || '未设定'}\n\n${book.description || ''}\n\n---\n\n${book.chapters.map(ch => `## 第${ch.number}章 ${ch.title || ''}\n\n${ch.content || ''}\n\n`).join('\n')}`;
-            
-            downloadFile(`${book.title}.md`, content);
-            showToast('success', '导出成功');
+            // Show export options modal
+            showExportOptionsModal(book);
         }
 
-        function deleteBook(bookId) {
+        function showExportOptionsModal(book) {
+            const modalHtml = `
+                <div class="modal-overlay active" id="export-modal" data-book-id="${book.id}">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h3 class="modal-title">📤 导出《${escapeHtml(book.title)}》</h3>
+                            <button class="modal-close" onclick="closeExportModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="form-label">导出格式</label>
+                                <select class="form-control" id="export-format">
+                                    <option value="md">Markdown (.md) - 推荐</option>
+                                    <option value="txt">纯文本 (.txt)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">导出范围</label>
+                                <select class="form-control" id="export-range">
+                                    <option value="all">全部章节 (${book.chapters.length}章)</option>
+                                    <option value="approved">仅已审核通过的章节</option>
+                                    <option value="custom">自定义范围</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="export-custom-range" style="display: none;">
+                                <label class="form-label">章节范围</label>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <input type="number" class="form-control" id="export-start-chapter" 
+                                           placeholder="从" min="1" max="${book.chapters.length}" value="1" style="width: 100px;">
+                                    <span>到</span>
+                                    <input type="number" class="form-control" id="export-end-chapter" 
+                                           placeholder="到" min="1" max="${book.chapters.length}" value="${book.chapters.length}" style="width: 100px;">
+                                    <span>章</span>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info" style="margin-top: 16px;">
+                                ℹ️ 导出内容包含：
+                                <ul style="margin: 8px 0 0 20px; padding: 0;">
+                                    <li>书名、题材、主角、简介</li>
+                                    <li>章节内容（按选择的范围）</li>
+                                    <li>MD 格式会保留标题层级结构</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-outline" onclick="closeExportModal()">取消</button>
+                            <button class="btn btn-primary" onclick="confirmExport()">📤 导出</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Add event listener for range change
+            document.getElementById('export-range').addEventListener('change', function() {
+                const customRangeDiv = document.getElementById('export-custom-range');
+                customRangeDiv.style.display = this.value === 'custom' ? 'flex' : 'none';
+            });
+        }
+
+        function closeExportModal() {
+            const modal = document.getElementById('export-modal');
+            if (modal) modal.remove();
+        }
+
+        function confirmExport() {
+            const modal = document.getElementById('export-modal');
+            if (!modal) return;
+            
+            const bookId = modal.dataset.bookId;
+            const book = APP_STATE.books.find(b => b.id === bookId);
+            if (!book) {
+                showToast('error', '找不到书籍信息');
+                return;
+            }
+
+            const format = document.getElementById('export-format').value;
+            const range = document.getElementById('export-range').value;
+            
+            let chaptersToExport = book.chapters;
+            
+            // Filter chapters based on range
+            if (range === 'approved') {
+                chaptersToExport = book.chapters.filter(ch => ch.status === 'approved');
+            } else if (range === 'custom') {
+                const startChapter = parseInt(document.getElementById('export-start-chapter').value);
+                const endChapter = parseInt(document.getElementById('export-end-chapter').value);
+                
+                if (startChapter > endChapter) {
+                    showToast('error', '起始章节不能大于结束章节');
+                    return;
+                }
+                
+                chaptersToExport = book.chapters.filter(ch => 
+                    ch.number >= startChapter && ch.number <= endChapter
+                );
+            }
+            
+            if (chaptersToExport.length === 0) {
+                showToast('warning', '没有符合筛选条件的章节');
+                return;
+            }
+            
+            // Generate content
+            let content;
+            if (format === 'txt') {
+                content = generateTxtContent(book, chaptersToExport);
+            } else {
+                content = generateMdContent(book, chaptersToExport);
+            }
+            
+            // Download
+            const filename = `${book.title}.${format}`;
+            downloadFile(filename, content);
+            
+            closeExportModal();
+            showToast('success', `✅ 已导出 ${chaptersToExport.length} 章内容`);
+        }
+
+        function getCurrentExportBookId() {
+            // Get from last clicked export button context
+            const selectElement = document.getElementById('export-book-id-storage');
+            return selectElement ? selectElement.value : null;
+        }
+
+        function generateMdContent(book, chapters) {
+            let content = `# ${book.title}\n\n`;
+            content += `**题材**: ${getGenreName(book.genre)}\n`;
+            content += `**主角**: ${book.protagonist || '未设定'}\n\n`;
+            
+            if (book.description) {
+                content += `## 简介\n\n${book.description}\n\n---\n\n`;
+            }
+            
+            chapters.forEach(ch => {
+                content += `# 第${ch.number}章 ${ch.title || ''}\n\n`;
+                content += `${ch.content || ''}\n\n`;
+            });
+            
+            return content;
+        }
+
+        function generateTxtContent(book, chapters) {
+            let content = `${book.title}\n`;
+            content += `题材：${getGenreName(book.genre)}\n`;
+            content += `主角：${book.protagonist || '未设定'}\n\n`;
+            
+            if (book.description) {
+                content += `简介：${book.description}\n\n`;
+                content += `${'='.repeat(50)}\n\n`;
+            }
+            
+            chapters.forEach(ch => {
+                content += `\n第${ch.number}章 ${ch.title || ''}\n`;
+                content += `${'-'.repeat(30)}\n\n`;
+                content += `${ch.content || ''}\n\n`;
+            });
+            
+            return content;
+        }
+
+        async function deleteBook(bookId) {
             if (!confirm('确定要删除这本书吗？此操作不可恢复。')) return;
 
-            APP_STATE.books = APP_STATE.books.filter(b => b.id !== bookId);
-            delete APP_STATE.truthFiles[bookId];
-            saveToStorage();
-            renderBooksList();
-            updateBookSelects();
-            showToast('success', '删除成功');
+            try {
+                // 通过 HTTP API 删除书籍
+                const response = await fetch(`${SERVER_URL}/delete-book`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'cors',
+                    body: JSON.stringify({ bookId })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || '删除失败');
+                }
+                
+                // 从本地状态移除
+                APP_STATE.books = APP_STATE.books.filter(b => b.id !== bookId);
+                
+                renderBooksList();
+                updateBookSelects();
+                showToast('success', '删除成功');
+                
+            } catch (error) {
+                console.error('删除书籍失败:', error);
+                showToast('error', `删除失败：${error.message}`);
+            }
         }
 
         // ==================== Writing Functions ====================
@@ -2025,6 +2717,25 @@
             `;
         }
 
+        async function loadContextFile() {
+            const fileInput = document.getElementById('write-context-file');
+            
+            if (fileInput.files.length === 0) {
+                showToast('warning', '请先选择文件');
+                return;
+            }
+
+            try {
+                const content = await readFileAsText(fileInput.files[0]);
+                const contextTextarea = document.getElementById('write-context');
+                contextTextarea.value = content;
+                
+                showToast('success', `✅ 已加载指导文件：${fileInput.files[0].name}\n📝 AI 将结合当前世界状态和您的指导进行创作`);
+            } catch (error) {
+                showToast('error', '加载文件失败：' + error.message);
+            }
+        }
+
         async function startWriting() {
             const bookId = document.getElementById('write-book-select').value;
             if (!bookId) {
@@ -2039,9 +2750,17 @@
 
             const book = APP_STATE.books.find(b => b.id === bookId);
             
+            // Check if LLM is configured
+            const config = localStorage.getItem('inkos_llm_config');
+            if (!config) {
+                showToast('warning', '请先在"配置管理"页面设置 LLM 配置');
+                showPage('config');
+                return;
+            }
+            
             showToast('info', '开始写作流程...');
             
-            // Simulate pipeline execution
+            // Show pipeline UI
             const steps = ['radar', 'architect', 'writer', 'auditor', 'reviser'];
             const stepNames = {
                 'radar': '雷达扫描',
@@ -2072,36 +2791,53 @@
                     ⏳ 正在执行：${stepNames[stepId]}... (进度 ${i + 1}/${steps.length})
                 `;
 
-                // Simulate API call delay
-                await sleep(1500 + Math.random() * 1000);
+                // Wait for pipeline to process (server will send progress updates in future)
+                await sleep(2000);
             }
 
-            // Generate simulated chapter
-            const chapterNumber = book.currentChapter + 1;
-            const chapter = {
-                number: chapterNumber,
-                title: `第${chapterNumber}章`,
-                content: generateSimulatedContent(book, chapterNumber, words),
-                status: 'draft',
-                createdAt: new Date().toISOString(),
-                wordCount: words,
-                auditResult: null
-            };
+            // Call real writing API
+            try {
+                document.getElementById('pipeline-status').innerHTML = `
+                    ⏳ 正在创作章节...（预计需要 1-3 分钟）
+                `;
+                
+                const response = await fetch(`${SERVER_URL}/api/write`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'cors',
+                    body: JSON.stringify({ 
+                        bookId, 
+                        context, 
+                        words, 
+                        count,
+                        useRadar 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || '写作失败');
+                }
+                
+                // Refresh books data
+                await loadAllBooks();
+                
+                const chapterNumber = result.results[0]?.chapterNumber || book.currentChapter + 1;
+                
+                document.getElementById('pipeline-status').innerHTML = `
+                    ✅ 第${chapterNumber}章创作完成！请前往"章节审阅"页面查看和审核。
+                `;
 
-            book.chapters.push(chapter);
-            book.currentChapter = chapterNumber;
-            book.totalWords += words;
-
-            // Update truth files
-            updateChapterSummaries(bookId, chapter);
-
-            saveToStorage();
-            
-            document.getElementById('pipeline-status').innerHTML = `
-                ✅ 第${chapterNumber}章创作完成！请前往"章节审阅"页面查看和审核。
-            `;
-
-            showToast('success', `第${chapterNumber}章创作完成！`);
+                showToast('success', `✅ 第${chapterNumber}章创作完成！\n📝 ${result.results[0]?.title || ''}\n📊 ${result.results[0]?.wordCount || 0}字`);
+                
+            } catch (error) {
+                console.error('写作失败:', error);
+                document.getElementById('pipeline-status').innerHTML = `
+                    ❌ 写作失败：${error.message}
+                `;
+                showToast('error', `写作失败：${error.message}`);
+            }
         }
 
         function generateSimulatedContent(book, chapterNumber, targetWords) {
@@ -2151,6 +2887,37 @@
                 container.style.display = 'none';
                 return;
             }
+        // Helper: Render chapters from API data
+        function renderChaptersListFromData(pendingChapters) {
+            const listContainer = document.getElementById('chapters-list');
+            const bookId = document.getElementById('review-book-select').value;
+            
+            if (pendingChapters.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3 class="empty-state-title">没有待审阅章节</h3>
+                        <p class="empty-state-desc">所有章节都已审阅完毕</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listContainer.innerHTML = pendingChapters.map(ch => `
+                <div class="chapter-item" onclick="viewChapterDetail('${bookId}', ${ch.number})">
+                    <div class="chapter-number">${ch.number}</div>
+                    <div class="chapter-info">
+                        <div class="chapter-title">${ch.title || '第' + ch.number + '章'}</div>
+                        <div class="chapter-meta">${ch.wordCount || 0}字 | ${ch.status}</div>
+                    </div>
+                    <div class="chapter-actions">
+                        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewChapterDetail('${bookId}', ${ch.number})">查看</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+
 
             container.style.display = 'block';
             const book = APP_STATE.books.find(b => b.id === bookId);
@@ -2338,6 +3105,8 @@
         }
 
         // ==================== Style Analysis Functions ====================
+        let currentStyleProfile = null; // Store current analysis result
+
         async function analyzeStyle() {
             const fileInput = document.getElementById('style-file-input');
             const textInput = document.getElementById('style-text-input');
@@ -2353,40 +3122,152 @@
                 return;
             }
 
+            if (text.length < 1000) {
+                showToast('warning', '文本长度较短（少于 1000 字），分析结果可能不够准确。建议 5000 字以上。');
+            }
+
             const resultContainer = document.getElementById('style-analysis-result');
             const profileDisplay = document.getElementById('style-profile-display');
             
             resultContainer.style.display = 'block';
             
-            // Simulated analysis
-            const avgSentenceLength = 20 + Math.random() * 15;
-            const ttr = 0.4 + Math.random() * 0.2;
+            // Perform detailed analysis
+            const analysis = performStyleAnalysis(text);
+            currentStyleProfile = analysis;
             
             profileDisplay.innerHTML = `
                 <div class="alert alert-success">
-                    ✓ 分析完成 - 文本长度：${text.length} 字
+                    ✓ 分析完成 - 文本长度：${formatNumber(text.length)} 字
                 </div>
-                <div class="grid grid-2" style="margin: 20px 0;">
+                <div class="grid grid-3" style="margin: 20px 0;">
                     <div class="stats-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <div class="stats-value">${avgSentenceLength.toFixed(1)}</div>
+                        <div class="stats-value">${analysis.avgSentenceLength.toFixed(1)}</div>
                         <div class="stats-label">平均句长</div>
                     </div>
                     <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <div class="stats-value">${(ttr * 100).toFixed(1)}%</div>
+                        <div class="stats-value">${(analysis.ttr * 100).toFixed(1)}%</div>
                         <div class="stats-label">词汇多样性 (TTR)</div>
                     </div>
+                    <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="stats-value">${analysis.avgParagraphLength.toFixed(0)}</div>
+                        <div class="stats-label">平均段落长度</div>
+                    </div>
                 </div>
+                <div class="grid grid-2" style="margin: 20px 0;">
+                    <div class="stats-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="stats-value">${analysis.dialogueRatio.toFixed(1)}%</div>
+                        <div class="stats-label">对话占比</div>
+                    </div>
+                    <div class="stats-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <div class="stats-value">${analysis.rareWordsCount}</div>
+                        <div class="stats-label">稀有词汇数</div>
+                    </div>
+                </div>
+                <h4 style="margin: 24px 0 16px;">📊 详细文风特征</h4>
                 <div class="code-block">
-文风特征分析:
-- 句子长度分布：中等偏短，节奏明快
-- 段落结构：以对话和动作为主
-- 修辞特征：比喻适度，少用华丽辞藻
-- 叙事视角：第三人称限知视角
-- 语气特点：简洁直接，少用修饰
+${analysis.styleDescription}
+                </div>
+                <div class="alert alert-info" style="margin-top: 16px;">
+                    💡 生成的文风指南将保存为 <code>style_guide.md</code>，后续写作时会自动应用此风格。
                 </div>
             `;
 
             showToast('success', '文风分析完成');
+        }
+
+        function performStyleAnalysis(text) {
+            // Split into sentences (Chinese punctuation)
+            const sentences = text.split(/[。！？.!?]/).filter(s => s.trim().length > 0);
+            const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+            
+            // Calculate average sentence length
+            const avgSentenceLength = sentences.reduce((sum, s) => sum + s.length, 0) / sentences.length;
+            
+            // Calculate TTR (Type-Token Ratio) - vocabulary diversity
+            const words = text.match(/[\u4e00-\u9fa5a-zA-Z]+/g) || [];
+            const uniqueWords = new Set(words);
+            const ttr = words.length > 0 ? uniqueWords.size / words.length : 0;
+            
+            // Average paragraph length
+            const avgParagraphLength = paragraphs.reduce((sum, p) => sum + p.length, 0) / paragraphs.length;
+            
+            // Dialogue ratio (lines with quotes)
+            const dialogueLines = text.match(/[""].*?[""]/g) || [];
+            const dialogueChars = dialogueLines.join('').length;
+            const dialogueRatio = text.length > 0 ? (dialogueChars / text.length) * 100 : 0;
+            
+            // Rare words count (characters appearing less than 3 times)
+            const charFreq = {};
+            words.forEach(w => {
+                for (let char of w) {
+                    charFreq[char] = (charFreq[char] || 0) + 1;
+                }
+            });
+            const rareWordsCount = Object.values(charFreq).filter(count => count <= 3).length;
+            
+            // Generate style description
+            const styleDescription = generateStyleDescription(avgSentenceLength, ttr, avgParagraphLength, dialogueRatio, rareWordsCount);
+            
+            return {
+                avgSentenceLength,
+                ttr,
+                avgParagraphLength,
+                dialogueRatio,
+                rareWordsCount,
+                styleDescription,
+                rawText: text
+            };
+        }
+
+        function generateStyleDescription(avgSentenceLength, ttr, avgParagraphLength, dialogueRatio, rareWordsCount) {
+            const parts = [];
+            
+            // Sentence length analysis
+            if (avgSentenceLength < 15) {
+                parts.push(`- 句子长度：**短句式**（平均${avgSentenceLength.toFixed(1)}字），节奏明快，适合快节奏叙事`);
+            } else if (avgSentenceLength < 25) {
+                parts.push(`- 句子长度：**中等句式**（平均${avgSentenceLength.toFixed(1)}字），张弛有度，叙述平稳`);
+            } else {
+                parts.push(`- 句子长度：**长句式**（平均${avgSentenceLength.toFixed(1)}字），适合细腻描写和复杂叙事`);
+            }
+            
+            // Vocabulary diversity
+            if (ttr > 0.7) {
+                parts.push(`- 词汇多样性：**丰富**（TTR ${ttr.toFixed(2)}），用词多变，文学性强`);
+            } else if (ttr > 0.5) {
+                parts.push(`- 词汇多样性：**中等**（TTR ${ttr.toFixed(2)}），常用词与变化兼顾`);
+            } else {
+                parts.push(`- 词汇多样性：**集中**（TTR ${ttr.toFixed(2)}），核心词汇重复使用，主题突出`);
+            }
+            
+            // Paragraph structure
+            if (avgParagraphLength < 100) {
+                parts.push(`- 段落结构：**短段落**（平均${avgParagraphLength.toFixed(0)}字），适合网络文学阅读习惯`);
+            } else if (avgParagraphLength < 200) {
+                parts.push(`- 段落结构：**中等段落**（平均${avgParagraphLength.toFixed(0)}字），传统文学风格`);
+            } else {
+                parts.push(`- 段落结构：**长段落**（平均${avgParagraphLength.toFixed(0)}字），适合深度描写`);
+            }
+            
+            // Dialogue ratio
+            if (dialogueRatio > 30) {
+                parts.push(`- 对话比例：**高**（${dialogueRatio.toFixed(1)}%），以对话推动剧情为主`);
+            } else if (dialogueRatio > 15) {
+                parts.push(`- 对话比例：**中等**（${dialogueRatio.toFixed(1)}%），对话与叙述平衡`);
+            } else {
+                parts.push(`- 对话比例：**低**（${dialogueRatio.toFixed(1)}%），以叙述和描写为主`);
+            }
+            
+            // Rare words
+            if (rareWordsCount > 50) {
+                parts.push(`- 稀有词汇：**丰富**（${rareWordsCount}个），用词考究，文化底蕴深厚`);
+            } else if (rareWordsCount > 20) {
+                parts.push(`- 稀有词汇：**适中**（${rareWordsCount}个），通俗易懂但不失文采`);
+            } else {
+                parts.push(`- 稀有词汇：**简洁**（${rareWordsCount}个），语言朴实，贴近口语`);
+            }
+            
+            return parts.join('\n');
         }
 
         function importStyle() {
@@ -2398,71 +3279,615 @@
                 return;
             }
 
-            showToast('success', `文风"${styleName || '自定义'}"已应用到书籍`);
+            if (!currentStyleProfile) {
+                showToast('error', '请先进行文风分析');
+                return;
+            }
+
+            // Generate style guide markdown
+            const styleGuide = generateStyleGuideMarkdown(currentStyleProfile, styleName);
+            
+            // Save to truth files as style_guide.md
+            if (!APP_STATE.truthFiles[bookId]) {
+                APP_STATE.truthFiles[bookId] = {};
+            }
+            
+            APP_STATE.truthFiles[bookId]['style_guide.md'] = styleGuide;
+            
+            // Also save profile JSON
+            APP_STATE.truthFiles[bookId]['style_profile.json'] = JSON.stringify({
+                name: styleName || '自定义风格',
+                analyzedAt: new Date().toISOString(),
+                stats: {
+                    avgSentenceLength: currentStyleProfile.avgSentenceLength,
+                    ttr: currentStyleProfile.ttr,
+                    avgParagraphLength: currentStyleProfile.avgParagraphLength,
+                    dialogueRatio: currentStyleProfile.dialogueRatio,
+                    rareWordsCount: currentStyleProfile.rareWordsCount
+                },
+                description: currentStyleProfile.styleDescription
+            }, null, 2);
+            
+            saveToStorage();
+
+            showToast('success', `✅ 文风"${styleName || '自定义'}"已成功导入\n📄 已生成 style_guide.md 和 style_profile.json`);
+        }
+
+        function generateStyleGuideMarkdown(profile, styleName) {
+            return `# 文风指南 - ${styleName || '自定义风格'}
+
+## 📊 统计特征
+
+- **平均句长**: ${profile.avgSentenceLength.toFixed(1)} 字
+- **词汇多样性 (TTR)**: ${(profile.ttr * 100).toFixed(1)}%
+- **平均段落长度**: ${profile.avgParagraphLength.toFixed(0)} 字
+- **对话比例**: ${profile.dialogueRatio.toFixed(1)}%
+- **稀有词汇数**: ${profile.rareWordsCount} 个
+
+## 🎨 文风特点
+
+${profile.styleDescription}
+
+## ✍️ 写作指导
+
+基于以上分析，在创作时应注意：
+
+1. **句式控制**: 保持与参考文本相似的句长节奏
+2. **词汇选择**: 维持相当的词汇多样性水平
+3. **段落结构**: 遵循参考文本的段落组织方式
+4. **对话处理**: 按照分析的对话比例平衡对话与叙述
+5. **语言风格**: 体现分析出的整体文风特征
+
+## 📝 参考文本信息
+
+- 分析时间：${new Date().toLocaleString('zh-CN')}
+- 文本长度：${formatNumber(profile.rawText.length)} 字
+- 风格名称：${styleName || '未命名'}
+
+---
+
+*此文风指南由 InkOS Studio 自动生成，将用于指导后续章节的创作。*
+`;
         }
 
         // ==================== Truth Files Functions ====================
-        function loadTruthFiles() {
+        let currentTruthFile = { bookId: null, fileName: null };
+        let isEditingMode = false;
+
+        async function loadTruthFiles() {
             const bookId = document.getElementById('truth-book-select').value;
-            const container = document.getElementById('truth-files-container');
-            const grid = document.getElementById('truth-files-grid');
             
+            // 定义 7 个固定的真相文件
+            const defaultTruthFiles = [
+                { name: 'current_state.md', icon: '📊', title: '世界状态快照' },
+                { name: 'particle_ledger.md', icon: '💰', title: '资源账本' },
+                { name: 'pending_hooks.md', icon: '🎣', title: '未闭合伏笔' },
+                { name: 'chapter_summaries.md', icon: '📝', title: '各章摘要' },
+                { name: 'subplot_board.md', icon: '🔀', title: '支线进度板' },
+                { name: 'emotional_arcs.md', icon: '❤️', title: '情感弧线' },
+                { name: 'character_matrix.md', icon: '👥', title: '角色交互矩阵' }
+            ];
+
+            // 如果没有选择书籍，重置为空白状态
             if (!bookId) {
-                container.style.display = 'none';
+                defaultTruthFiles.forEach(file => {
+                    const contentEl = document.getElementById(`content-${file.name}`);
+                    const statusEl = document.getElementById(`status-${file.name}`);
+                    
+                    if (contentEl) {
+                        contentEl.innerHTML = '<span style="color:var(--text-secondary);text-align:center;">💡 请先在上方选择一本书籍<br><br><small>真相文件会在 AI 写作时自动生成</small></span>';
+                    }
+                    if (statusEl) {
+                        statusEl.className = 'truth-file-status-badge status-empty';
+                        statusEl.textContent = '等待选择书籍';
+                    }
+                });
                 return;
             }
 
-            container.style.display = 'block';
-            const truthFiles = APP_STATE.truthFiles[bookId];
-            
-            if (!truthFiles) {
-                grid.innerHTML = '<div class="empty-state"><p>暂无真相文件</p></div>';
-                return;
-            }
-
-            const fileDescriptions = {
-                'current_state.md': '世界状态快照',
-                'particle_ledger.md': '资源账本',
-                'pending_hooks.md': '未闭合伏笔',
-                'chapter_summaries.md': '章节摘要汇总',
-                'subplot_board.md': '支线进度追踪',
-                'emotional_arcs.md': '角色情感弧线',
-                'character_matrix.md': '角色关系矩阵'
-            };
-
-            const fileIcons = {
-                'current_state.md': '📊',
-                'particle_ledger.md': '💰',
-                'pending_hooks.md': '🎣',
-                'chapter_summaries.md': '📝',
-                'subplot_board.md': '🔀',
-                'emotional_arcs.md': '❤️',
-                'character_matrix.md': '👥'
-            };
-
-            grid.innerHTML = Object.entries(truthFiles).map(([name, content]) => `
-                <div class="truth-file-card" onclick="viewTruthFile('${bookId}', '${name}')">
-                    <div class="truth-file-icon">${fileIcons[name] || '📄'}</div>
-                    <div class="truth-file-name">${name}</div>
-                    <div class="truth-file-desc">${fileDescriptions[name] || '真相文件'}</div>
-                </div>
-            `).join('');
+            // 选择了书籍，显示"点击打开编辑"提示（不主动加载内容）
+            defaultTruthFiles.forEach(file => {
+                const contentEl = document.getElementById(`content-${file.name}`);
+                const statusEl = document.getElementById(`status-${file.name}`);
+                
+                if (contentEl) {
+                    contentEl.innerHTML = '<span style="color:var(--text-secondary);text-align:center;">👆 点击窗口打开编辑器<br><br><small>首次编辑时会自动启动 HTTP 服务</small></span>';
+                }
+                if (statusEl) {
+                    statusEl.className = 'truth-file-status-badge status-empty';
+                    statusEl.textContent = '点击打开';
+                }
+            });
         }
 
-        function viewTruthFile(bookId, fileName) {
-            const truthFiles = APP_STATE.truthFiles[bookId];
-            const content = truthFiles[fileName];
+        // 全屏查看单个文件
+        function expandTruthFile(fileName) {
+            const content = document.getElementById(`content-${fileName}`).textContent;
+            const bookId = document.getElementById('truth-book-select').value;
             
-            if (!content) return;
+            if (!bookId) {
+                showToast('info', '请先选择一本书籍');
+                return;
+            }
+            
+            // 使用浏览器原生全屏 API
+            const card = document.getElementById(`truth-card-${fileName}`);
+            if (card.requestFullscreen) {
+                card.requestFullscreen();
+            } else if (card.mozRequestFullScreen) {
+                card.mozRequestFullScreen();
+            } else if (card.webkitRequestFullscreen) {
+                card.webkitRequestFullscreen();
+            } else if (card.msRequestFullscreen) {
+                card.msRequestFullscreen();
+            }
+            
+            showToast('info', '按 ESC 退出全屏');
+        }
 
-            document.getElementById('truth-file-viewer').style.display = 'block';
-            document.getElementById('truth-file-title').textContent = fileName;
-            document.getElementById('truth-file-content').textContent = content;
+        // 全屏编辑真相文件（需要 HTTP 服务支持）
+        let currentEditingFile = null;
+        let isPreviewMode = false;
+        let httpServiceStarted = false;
+        
+        async function openTruthFileEditor(fileName) {
+            const bookId = document.getElementById('truth-book-select').value;
             
-            scrollToElement('truth-file-viewer');
+            if (!bookId) {
+                showToast('info', '请先选择一本书籍');
+                return;
+            }
+            
+            // 检查并启动 HTTP 服务
+            if (!httpServiceStarted) {
+                const started = await ensureHttpServiceForEditor();
+                if (!started) {
+                    showToast('error', 'HTTP 服务启动失败，无法编辑 MD 文件');
+                    return;
+                }
+            }
+            
+            currentEditingFile = fileName;
+            
+            // 加载文件内容
+            let currentContent = '';
+            try {
+                const response = await fetch(`${SERVER_URL}/read-file?bookId=${bookId}&fileName=${fileName}`, { mode: 'cors' });
+                if (response.ok) {
+                    const data = await response.json();
+                    currentContent = data.content || '';
+                }
+            } catch (error) {
+                console.log('读取文件失败，使用空内容:', error.message);
+            }
+            
+            // Setup modal
+            document.getElementById('truth-editor-title').textContent = `编辑：${fileName}`;
+            document.getElementById('truth-full-editor').value = currentContent;
+            document.getElementById('truth-preview').style.display = 'none';
+            document.getElementById('save-status').textContent = '';
+            isPreviewMode = false;
+            
+            // Show modal
+            const modal = document.getElementById('truth-file-editor-modal');
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            showToast('success', '✅ 已启动 HTTP 服务，可以编辑和保存 MD 文件了');
+        }
+        
+        // 确保 HTTP 服务已启动（用于编辑器）
+        async function ensureHttpServiceForEditor() {
+            if (httpServiceStarted) {
+                return true;
+            }
+            
+            try {
+                // 尝试连接服务器
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                
+                const response = await fetch(`${SERVER_URL}/connect`, { 
+                    mode: 'cors',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    httpServiceStarted = true;
+                    isConnected = true;
+                    console.log('✅ HTTP 服务已启动（用于 MD 文件编辑）');
+                    return true;
+                }
+            } catch (error) {
+                console.error('HTTP 服务未响应:', error);
+            }
+            
+            // 服务未启动，提示用户
+            const shouldStart = confirm(
+                '💡 真相文件编辑需要 HTTP 本地服务支持。\n\n' +
+                '检测到服务未运行，是否现在启动？\n\n' +
+                '点击"确定"后，系统会尝试自动启动服务。'
+            );
+            
+            if (shouldStart) {
+                // 尝试启动服务
+                try {
+                    const startResponse = await fetch(`${SERVER_URL}/start`, { 
+                        method: 'POST',
+                        mode: 'cors'
+                    });
+                    
+                    if (startResponse.ok) {
+                        httpServiceStarted = true;
+                        isConnected = true;
+                        showToast('success', '✅ HTTP 服务已启动');
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('启动服务失败:', error);
+                }
+            }
+            
+            return false;
+        }
+        
+        function closeTruthFileEditor() {
+            const modal = document.getElementById('truth-file-editor-modal');
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            currentEditingFile = null;
+        }
+        
+        async function saveTruthFileFromEditor() {
+            if (!currentEditingFile) return;
+            
+            const bookId = document.getElementById('truth-book-select').value;
+            const newContent = document.getElementById('truth-full-editor').value;
+            const statusEl = document.getElementById('save-status');
+            
+            if (!bookId) {
+                showToast('error', '请先选择书籍');
+                return;
+            }
+            
+            try {
+                statusEl.textContent = '💾 正在保存...';
+                
+                const response = await fetch(`${SERVER_URL}/write-file`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'cors',
+                    body: JSON.stringify({ 
+                        bookId, 
+                        fileName: currentEditingFile, 
+                        content: newContent,
+                        fileType: 'truth'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('保存失败');
+                }
+                
+                // Update the card content
+                const contentEl = document.getElementById(`content-${currentEditingFile}`);
+                const statusBadgeEl = document.getElementById(`status-${currentEditingFile}`);
+                
+                if (contentEl) {
+                    contentEl.textContent = newContent;
+                }
+                if (statusBadgeEl) {
+                    statusBadgeEl.className = 'truth-file-status-badge status-ready';
+                    statusBadgeEl.textContent = '已加载';
+                }
+                
+                statusEl.textContent = '✅ 已保存';
+                showToast('success', `✅ ${currentEditingFile} 已保存到磁盘`);
+                
+                setTimeout(() => {
+                    statusEl.textContent = '';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('保存真相文件失败:', error);
+                statusEl.textContent = '❌ 保存失败';
+                showToast('error', `保存失败：${error.message}`);
+            }
+        }
+        
+        function togglePreviewMode() {
+            const editor = document.getElementById('truth-full-editor');
+            const preview = document.getElementById('truth-preview');
+            
+            if (isPreviewMode) {
+                editor.style.display = 'block';
+                preview.style.display = 'none';
+            } else {
+                editor.style.display = 'none';
+                preview.textContent = editor.value;
+                preview.style.display = 'block';
+            }
+            
+            isPreviewMode = !isPreviewMode;
+        }
+        
+        function insertTemplateContent() {
+            if (!currentEditingFile) return;
+            
+            const template = DEFAULT_TRUTH_FILE_TEMPLATES[currentEditingFile];
+            if (template) {
+                const editor = document.getElementById('truth-full-editor');
+                if (confirm('这将插入模板内容到当前编辑器，是否继续？')) {
+                    editor.value = template;
+                    showToast('success', '已插入模板内容');
+                }
+            } else {
+                showToast('info', '该文件类型暂无模板');
+            }
+        }
+
+        // 真相文件默认模板内容
+        const DEFAULT_TRUTH_FILE_TEMPLATES = {
+            'current_state.md': `# 世界状态快照
+
+## 📍 当前位置
+- **时间**: [当前故事时间]
+- **地点**: [主要场景]
+
+## 👥 角色位置
+| 角色 | 当前位置 | 状态 |
+|------|----------|------|
+| [角色名] | [位置] | [活跃/受伤/失踪等] |
+
+## 🔗 关系网络
+- [角色 A] ↔ [角色 B]: [关系描述]
+- [角色 C] → [角色 D]: [单箭头关系]
+
+## 📚 已知信息
+### 公开信息
+- 所有人都知道的事实
+
+### 秘密信息
+- [角色名] 知道的秘密：[内容]
+
+## 💕 情感弧线
+- [角色名]: [当前情感状态] → [目标情感状态]
+`,
+            'particle_ledger.md': `# 资源账本
+
+## 💰 货币追踪
+| 角色/组织 | 持有金额 | 变化趋势 |
+|-----------|----------|----------|
+| [角色名] | [数量] | [+/-] |
+
+## 🎒 重要物品
+| 物品名 | 持有者 | 状态 | 备注 |
+|--------|--------|------|------|
+| [物品] | [角色] | [完好/损坏] | [描述] |
+
+## 📦 物资库存
+### [地点/组织名]
+- [物资名]: [数量] ([衰减率])
+
+## ⏳ 衰减追踪
+- [资源名]: 每 [时间单位] 减少 [数量]
+`,
+            'pending_hooks.md': `# 未闭合伏笔
+
+## 🔥 紧急伏笔（3 章内需要回收）
+| 伏笔 | 铺垫章节 | 承诺内容 | 紧迫度 |
+|------|----------|----------|--------|
+| [描述] | [第 X 章] | [读者期待] | 🔴🟠🟡 |
+
+## ⏳ 中期伏笔（5-10 章内）
+- [伏笔描述] - 铺垫于第 X 章
+
+## 🌱 长期伏笔（10 章以上）
+- [伏笔描述] - 铺垫于第 X 章
+
+## ❓ 未解决冲突
+1. [冲突描述] - 涉及角色：[角色列表]
+`,
+            'chapter_summaries.md': `# 章节摘要汇总
+
+## 第 1 章
+- **标题**: [章节标题]
+- **出场人物**: [角色列表]
+- **关键事件**: 
+  - 事件 1
+  - 事件 2
+- **状态变化**:
+  - [角色/势力]: [变化前] → [变化后]
+- **伏笔动态**:
+  - 新增：[新伏笔]
+  - 回收：[已解决伏笔]
+
+## 第 2 章
+[同上格式]
+`,
+            'subplot_board.md': `# 支线进度板
+
+## A 线（主线）
+- **当前状态**: [进展描述]
+- **最近活跃**: 第 X 章
+- **状态**: ✅ 进行中 / ⚠️ 停滞
+
+## B 线（副线）
+- **当前状态**: [进展描述]
+- **最近活跃**: 第 X 章
+- **状态**: ✅ 进行中 / ⚠️ 停滞
+
+## C 线（暗线）
+- **当前状态**: [进展描述]
+- **最近活跃**: 第 X 章
+- **状态**: ✅ 进行中 / ⚠️ 停滞
+
+## 🚨 停滞检测
+> 超过 5 章未活跃的支线需要关注
+
+- [支线名]: 已停滞 [X] 章
+`,
+            'emotional_arcs.md': `# 情感弧线
+
+## [角色名]
+### 起始状态
+- **情感基线**: [特征]
+- **核心需求**: [心理需求]
+- **致命弱点**: [缺陷]
+
+### 当前阶段
+- **章节**: 第 X-Y 章
+- **情感状态**: [当前情绪]
+- **成长进展**: [变化描述]
+
+### 里程碑事件
+1. 第 X 章：[触发事件] → [情感觉醒]
+2. 第 Y 章：[挑战事件] → [成长突破]
+
+### 目标状态
+- **最终情感**: [成熟状态]
+- **完成度**: [百分比]
+
+---
+
+## [另一角色]
+[同上格式]
+`,
+            'character_matrix.md': `# 角色交互矩阵
+
+## 相遇记录
+
+### [角色 A] ↔ [角色 B]
+| 见面次数 | 首次见面 | 最近一次 | 关系演变 |
+|----------|----------|----------|----------|
+| X 次 | 第 X 章 | 第 Y 章 | [陌生→熟悉→...] |
+
+### 信息边界
+- [角色 A] 知道但 [角色 B] 不知道：[信息列表]
+- [角色 B] 知道但 [角色 A] 不知道：[信息列表]
+
+## 👥 群体动态
+### [团体名]
+- 成员：[角色列表]
+- 凝聚力：[强/中/弱]
+- 共同目标：[目标描述]
+
+## 🔐 秘密网络
+- [角色名] 对 [其他角色] 隐瞒：[秘密内容]
+`
+        };
+
+        function cancelEditMode() {
+            isEditingMode = false;
+            document.getElementById('truth-file-content').style.display = 'block';
+            document.getElementById('truth-file-editor').style.display = 'none';
+            
+            // Reset buttons
+            document.getElementById('truth-edit-btn').style.display = 'inline-flex';
+            document.getElementById('truth-save-btn').style.display = 'none';
+            document.getElementById('truth-import-btn').style.display = 'inline-flex';
+            document.getElementById('truth-export-btn').style.display = 'inline-flex';
+            document.getElementById('truth-edit-warning').style.display = 'none';
+        }
+
+        function importTruthFile() {
+            document.getElementById('truth-file-import-input').click();
+        }
+
+        async function handleTruthFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const content = e.target.result;
+                const { bookId, fileName } = currentTruthFile;
+                
+                if (!bookId || !fileName) {
+                    showToast('error', '导入失败：文件信息丢失');
+                    return;
+                }
+
+                // Confirm overwrite
+                if (!confirm(`确定要用上传的文件覆盖 "${fileName}" 吗？\n\n此操作会覆盖当前内容。`)) {
+                    event.target.value = '';
+                    return;
+                }
+
+                try {
+                    // 通过 HTTP API 保存到磁盘
+                    const response = await fetch(`${SERVER_URL}/write-file`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        mode: 'cors',
+                        body: JSON.stringify({ 
+                            bookId, 
+                            fileName, 
+                            content: content,
+                            fileType: 'truth'
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('导入失败');
+                    }
+
+                    // Update view
+                    document.getElementById('truth-file-content').textContent = content;
+                    
+                    showToast('success', `✅ 文件 "${fileName}" 已成功导入并覆盖`);
+                    
+                } catch (error) {
+                    console.error('导入真相文件失败:', error);
+                    showToast('error', `导入失败：${error.message}`);
+                }
+            };
+            
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        async function exportTruthFile() {
+            const { bookId, fileName } = currentTruthFile;
+            
+            try {
+                // 从 HTTP API 读取文件内容
+                const response = await fetch(
+                    `${SERVER_URL}/read-file?bookId=${bookId}&fileName=${fileName}`,
+                    { mode: 'cors' }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`读取文件失败：${fileName}`);
+                }
+                
+                const data = await response.json();
+                const content = data.content;
+                
+                if (!content) {
+                    showToast('error', '导出失败：文件内容为空');
+                    return;
+                }
+
+                downloadFile(fileName, content);
+                showToast('success', `✅ 文件 "${fileName}" 已导出`);
+                
+            } catch (error) {
+                console.error('导出真相文件失败:', error);
+                showToast('error', `导出失败：${error.message}`);
+            }
         }
 
         function closeTruthFileViewer() {
+            if (isEditingMode) {
+                if (!confirm('您有未保存的修改，确定要关闭吗？')) {
+                    return;
+                }
+                cancelEditMode();
+            }
             document.getElementById('truth-file-viewer').style.display = 'none';
         }
 
@@ -2508,7 +3933,17 @@
                 webhookUrl: document.getElementById('config-webhook-url').value.trim()
             };
 
+            // Save to localStorage (for HTML app)
             saveToStorage();
+            
+            // Also save to server (for CLI integration)
+            fetch(`${SERVER_URL}/api/config/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
+                body: JSON.stringify(APP_STATE.config)
+            }).catch(err => console.log('保存到服务器失败:', err));
+            
             showToast('success', '配置已保存');
         }
 
@@ -2584,7 +4019,17 @@
 
             const grandParent = parent.parentElement;
             grandParent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(`tab-${tabContentId}`).classList.add('active');
+            
+            // Try both 'tab-contentId' and 'tabContentId' formats
+            let targetTab = document.getElementById(`tab-${tabContentId}`);
+            if (!targetTab) {
+                targetTab = document.getElementById(tabContentId);
+            }
+            if (targetTab) {
+                targetTab.classList.add('active');
+            } else {
+                console.error('Tab content not found:', tabContentId);
+            }
         }
 
         function scrollToElement(elementId) {

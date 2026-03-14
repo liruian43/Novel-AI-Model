@@ -19,7 +19,7 @@
 ---
 
 > [!IMPORTANT]
-> ## 🔥 私有升级版本说明 (v0.4-HTML)
+> ## 🔥 私有升级版本说明 (v0.6-HTML)
 > 
 > **本仓库在原项目基础上进行了以下私有化升级：**
 > 
@@ -85,6 +85,66 @@
 > | **数据存储** | 文件系统 | LocalStorage + 可导出 |
 > 
 > > **注意**：私有升级版完全兼容原项目功能，所有 CLI 命令仍然可用。
+> 
+> ---
+> 
+> ## 🔥 全新升级 (v0.6-HTTP 服务) ⭐ 最新    
+> 
+> **在 v0.5-HTML 基础上进一步升级，实现与 CLI 工具的完美同步！**
+> 
+> ### ✨ 新增功能
+> 
+> #### 1. 🚀 一键启动
+> - **双击 start.bat** 自动完成所有操作：
+>   - ✅ 自动检测系统 Node.js（缺失则下载便携版）
+>   - ✅ 自动安装依赖（npm install）
+>   - ✅ 自动启动 HTTP 服务
+>   - ✅ 自动打开浏览器到 HTML 界面
+> - **零配置**：用户无需手动执行任何命令
+> 
+> #### 2. 💾 直接读写 MD 文件
+> - **与 CLI 共享数据源**：HTML 应用直接读写项目文件夹中的 MD 文件
+> - **完美同步**：HTML 和 CLI 工具数据实时互通，无需手动导入导出
+> - **数据安全**：所有数据存储在磁盘上，不依赖浏览器缓存
+> 
+> #### 3. 🔄 自动服务管理
+> - **自动启动**：打开 HTML 时自动启动 HTTP 服务
+> - **自动停止**：关闭浏览器后服务自动停止（2 秒延迟）
+> - **客户端计数**：支持多标签页同时打开
+> 
+> ### 📁 新增文件
+> ```
+> inkos/
+> ├── InkOS-Studio.html          # ⭐ HTML 应用程序（已升级为 HTTP 服务版）
+> ├── launcher.js                # ⭐ 智能启动器（新增）
+> ├── server.js                  # ⭐ HTTP 服务（新增）
+> ├── start.bat                  # ⭐ Windows 一键启动（新增）
+> ├── start.sh                   # ⭐ macOS/Linux 一键启动（新增）
+> └── INSTALL.md                 # ⭐ 安装和使用指南（新增）
+> ```
+> 
+> ### 🚀 快速开始（HTTP 服务版）
+> ```bash
+> # 方式一：一键启动（推荐）
+> 双击 start.bat                  # Windows
+> ./start.sh                     # macOS/Linux
+> 
+> # 方式二：NPM 启动
+> npm run studio
+> ```
+> 
+> ### 📊 版本对比
+> 
+> | 特性 | v0.5-HTML (LocalStorage) | v0.6-HTTP 服务 |
+> |------|-------------------------|---------------|
+> | **启动方式** | 双击 HTML 文件 | 双击 start.bat |
+> | **数据存储** | 浏览器 LocalStorage | 磁盘 MD 文件 |
+> | **CLI 同步** | ❌ 不互通 | ✅ 完美同步 |
+> | **Node.js** | 不需要 | 自动管理 |
+> | **数据持久化** | 清除缓存会丢失 | 永久保存 |
+> | **依赖安装** | 无 | 自动安装 |
+> 
+> > **注意**：v0.6-HTTP 服务版本是 v0.5-HTML 的升级版，推荐使用最新版本以获得更好的体验。
 > 
 > ---
 
@@ -658,170 +718,187 @@ pnpm typecheck    # 类型检查
 
 ---
 
-## 🔧 私有升级详细说明
+## 许可证
 
-> 本章节详细介绍 v0.4-HTML 私有升级版本的技术实现和使用细节。
+[MIT](LICENSE)
+
 
 ### 目录
 
-- [HTML 应用程序架构](#html-应用程序架构)
-- [真相文件处理机制](#真相文件处理机制)
+- [HTTP 服务架构](#http-服务架构)
+- [真相文件直接读写](#真相文件直接读写)
 - [LLM 扩展实现](#llm 扩展实现)
-- [数据持久化方案](#数据持久化方案)
+- [自动安装和启动](#自动安装和启动)
 - [常见问题](#常见问题)
 
 ---
 
-### HTML 应用程序架构
+### HTTP 服务架构
 
 #### 技术栈
+- **Node.js + Express**：轻量级 HTTP 服务器
 - **纯静态 HTML**：单文件包含所有 CSS/JS，无需构建工具
-- **LocalStorage 存储**：浏览器本地持久化，最大 5-10MB
-- **原生 JavaScript**：无第三方依赖（除可选的 JSZip 用于导出）
+- **文件系统直接访问**：通过 Node.js fs 模块读写 MD 文件
+- **RESTful API**：JSON 格式，支持 CORS
 
-#### 核心模块
+#### 核心组件
 
 ```
-InkOS-Studio.html
-├── 状态管理 (APP_STATE)
-│   ├── books: []              # 书籍列表
-│   ├── chapters: []           # 章节缓存
-│   ├── truthFiles: {}         # 真相文件集合
-│   └── config: {}             # LLM 配置
-├── 页面系统
-│   ├── dashboard              # 工作台
-│   ├── books                  # 书籍管理
-│   ├── write                  # 智能写作
-│   ├── review                 # 章节审阅
-│   ├── detect                 # AIGC 检测
-│   ├── style                  # 文风仿写
-│   ├── truth-files            # 真相文件
-│   ├── config                 # 配置管理
-│   └── help                   # 使用帮助
-└── 工具函数
-    ├── localStorage 读写
-    ├── 文件导入导出
-    └── API 调用封装
+inkos/
+├── InkOS-Studio.html          # HTML 应用程序（前端界面）
+├── server.js                  # HTTP 服务器（后端 API）
+├── launcher.js                # 智能启动器
+│   ├── 检测系统 Node.js
+│   ├── 下载便携版 Node.js（如果需要）
+│   └── 启动 server.js
+├── start.bat                  # Windows 一键启动
+└── start.sh                   # macOS/Linux 一键启动
 ```
 
-#### 与原 CLI 的映射关系
+#### HTTP API 端点
 
-| CLI 命令 | HTML 功能 | 说明 |
-|---------|----------|------|
-| `inkos book create` | 书籍管理 → 创建新书 | 相同逻辑，图形界面 |
-| `inkos book list` | 书籍管理 → 书籍列表 | 卡片式展示 |
-| `inkos write next` | 智能写作 → 开始写作 | 管线步骤可视化 |
-| `inkos draft` | 智能写作 → 草稿生成 | 相同 |
-| `inkos audit` | 章节审阅 → 审计报告 | 32 维度展示 |
-| `inkos revise` | 章节审阅 → 修订本章 | spot-fix 模式 |
-| `inkos detect` | AIGC 检测 | 书籍检测 + 文本检测 |
-| `inkos style analyze` | 文风仿写 → 分析 | 统计指纹提取 |
-| `inkos style import` | 文风仿写 → 导入 | 应用到书籍 |
-| `inkos config` | 配置管理 | 图形化配置 |
-| `inkos export` | 书籍管理 → 导出 | MD/TXT格式 |
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/connect` | GET | 客户端连接计数 |
+| `/disconnect` | GET | 客户端断开计数 |
+| `/health` | GET | 健康检查 |
+| `/set-project` | POST | 设置项目路径 |
+| `/list-books` | GET | 列出所有书籍 |
+| `/create-book` | POST | 创建新书籍 |
+| `/delete-book` | POST | 删除书籍 |
+| `/list-truth-files` | GET | 列出真相文件 |
+| `/read-file` | GET | 读取真相文件 |
+| `/write-file` | POST | 保存真相文件 |
+| `/shutdown` | POST | 关闭服务 |
+
+#### 客户端计数与自动关闭
+
+```javascript
+// server.js
+let activeClients = 0;
+let shutdownTimer = null;
+
+app.get('/connect', (req, res) => {
+  activeClients++;
+  clearTimeout(shutdownTimer);
+});
+
+app.get('/disconnect', (req, res) => {
+  activeClients--;
+  if (activeClients <= 0) {
+    shutdownTimer = setTimeout(() => process.exit(0), 2000);
+  }
+});
+```
+
+- 打开浏览器 → `activeClients++`
+- 关闭浏览器标签 → `activeClients--`
+- 最后一个标签关闭 → 2 秒后自动停止服务
 
 ---
 
-### 真相文件处理机制
+### 真相文件直接读写
 
-#### 原 CLI 项目 vs HTML 应用
+#### 数据流
 
 ```
-【CLI 项目 - 真实文件系统】
-books/
-└── 吞天魔帝/
-    └── state/
-        ├── current_state.md       ← 真实 MD 文件
-        ├── particle_ledger.md     ← 真实 MD 文件
-        └── ...                    ← 7 个文件
-
-【HTML 应用 - LocalStorage】
-localStorage {
-  "inkos_studio_state": "{
-    \"truthFiles\": {
-      \"book_xxx\": {
-        \"current_state.md\": \"# 内容...\",
-        \"particle_ledger.md\": \"# 内容...\",
-        ...
-      }
-    }
-  }"
-}
+【HTML 应用】
+用户点击"保存真相文件"
+  ↓
+发送 POST /write-file { bookId, fileName, content }
+  ↓
+【HTTP 服务器】
+写入 books/{bookId}/state/{fileName}
+  ↓
+【磁盘文件系统】
+真实 MD 文件被更新
+  ↓
+【CLI 工具】
+可以直接读取该 MD 文件
 ```
 
-#### 真相文件同步策略
+#### 与原 CLI 项目的映射
 
-**当前实现**（只读模式）：
-- ✅ HTML 应用初始化时从模板创建 7 个真相文件
-- ✅ 每次写作后自动更新 `chapter_summaries.md`
-- ✅ 支持在界面查看和编辑所有内容
-- ⚠️ 不会自动同步到磁盘 MD 文件
+| CLI 命令 | HTML 功能 | 数据源 |
+|---------|----------|--------|
+| `inkos book create` | 书籍管理 → 创建新书 | 同一 books/ 目录 |
+| `inkos book list` | 书籍列表 | 同一 books/ 目录 |
+| `inkos write next` | 智能写作 | 共享 state/*.md |
+| `inkos audit` | 章节审阅 | 共享 state/*.md |
+| 真相文件查看 | 真相文件管理 | 直接读取 state/*.md |
+| 真相文件编辑 | 真相文件管理 | 直接写入 state/*.md |
 
-**导出功能**（手动触发）：
+#### 同步机制
+
+**无需手动同步**：
+- HTML 应用和 CLI 工具读写同一套 MD 文件
+- HTML 保存后立即写入磁盘
+- CLI 可以随时读取最新版本
+- 双向实时同步
+
+---
+
+### 自动安装和启动
+
+#### launcher.js 智能启动流程
+
 ```javascript
-// 一键导出某本书的全部真相文件
-function exportBookWithTruthFiles(bookId) {
-  const book = APP_STATE.books.find(b => b.id === bookId);
-  const truthFiles = APP_STATE.truthFiles[bookId];
+async function detectNodeJS() {
+  // 1. 检测系统 Node.js
+  try {
+    const version = await execAsync('node --version');
+    if (version >= 'v18') return 'node';
+  } catch {}
   
-  // 创建 ZIP 包
-  const zip = new JSZip();
-  zip.folder(`${book.title}/state`);
-  
-  // 添加 7 个真相文件
-  Object.entries(truthFiles).forEach(([name, content]) => {
-    zip.file(`state/${name}`, content);
-  });
-  
-  // 添加章节内容
-  book.chapters.forEach(ch => {
-    zip.file(`story/chapter_${ch.number}.txt`, ch.content);
-  });
-  
-  // 下载 ZIP
-  downloadFile(`${book.title}_complete.zip`, blob);
+  // 2. 如果缺失或版本过低，下载便携版
+  return await downloadPortableNode();
+}
+
+async function downloadPortableNode() {
+  // 下载 node-v20.x.x-win-x64.zip（85MB）
+  // 解压到 ./node-portable/
+  // 返回 node.exe 路径
 }
 ```
 
-#### 真相文件结构
+#### start.bat 完整流程
 
-每个真相文件的初始模板：
+```batch
+@echo off
+chcp 65001 >nul
+title InkOS Studio - 智能启动器
 
-```markdown
-# current_state.md
-## 角色位置
-## 关系网络
-## 已知信息
-## 情感弧线
+REM 1. 检测 Node.js
+where node >nul 2>nul
+if %ERRORLEVEL% NEQ 0 (
+    echo ℹ️  未检测到 Node.js
+    echo 📥 将自动下载便携版到项目文件夹...
+)
 
-# particle_ledger.md
-## 物品
-## 金钱
-## 物资
+REM 2. 运行 launcher.js（自动安装依赖）
+node "%~dp0launcher.js"
 
-# pending_hooks.md
-## 铺垫
-## 承诺
-## 未解决冲突
-
-# chapter_summaries.md
-## 第 X 章
-- 出场人物：
-- 关键事件：
-- 状态变化：
-- 伏笔动态：
-
-# subplot_board.md
-## A 线
-## B 线
-## C 线
-
-# emotional_arcs.md
-## 角色名 - 情绪轨迹
-
-# character_matrix.md
-## 角色交互记录
+REM 3. launcher.js 会：
+REM    - 检测/安装 Node.js
+REM    - 运行 npm install
+REM    - 启动 server.js
+REM    - 打开浏览器到 http://localhost:3000
 ```
+
+#### 依赖自动安装
+
+```javascript
+// launcher.js
+async function installDependencies() {
+  console.log('📦 正在安装依赖...');
+  await execAsync('npm install');
+  console.log('✅ 依赖安装完成');
+}
+```
+
+- 首次运行时自动执行 `npm install`
+- 安装 express 和其他依赖
+- 后续运行跳过此步骤
 
 ---
 
@@ -909,92 +986,32 @@ API Key: sk-xxx
 
 ---
 
-### 数据持久化方案
-
-#### LocalStorage 限制与对策
-
-**限制**：
-- 容量：5-10MB（因浏览器而异）
-- 数据类型：仅支持字符串
-- 作用域：同源策略（协议 + 域名 + 端口）
-
-**对策**：
-```javascript
-// 1. 序列化前压缩
-function saveToStorage() {
-  const jsonStr = JSON.stringify(APP_STATE);
-  // 简单压缩：移除多余空格
-  const compressed = jsonStr.replace(/\s+/g, ' ');
-  localStorage.setItem('inkos_studio_state', compressed);
-}
-
-// 2. 定期备份提醒
-function checkStorageUsage() {
-  const usage = new Blob([localStorage.getItem('inkos_studio_state')]).size;
-  if (usage > 4 * 1024 * 1024) { // 4MB 告警
-    showToast('warning', '存储空间即将用满，建议导出数据');
-  }
-}
-
-// 3. 导出功能
-function exportAllData() {
-  const dataStr = JSON.stringify(APP_STATE, null, 2);
-  downloadFile(`inkos_backup_${Date.now()}.json`, dataStr);
-}
-```
-
-#### 数据恢复流程
-
-```javascript
-// 导入备份文件
-function handleImportFile(event) {
-  const file = event.target.files[0];
-  const reader = new FileReader();
-  
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      
-      // 合并数据（保留现有配置）
-      APP_STATE = {
-        ...imported,
-        config: APP_STATE.config // 保留当前 API 配置
-      };
-      
-      saveToStorage();
-      showToast('success', '数据导入成功');
-    } catch (err) {
-      showToast('error', '导入失败：文件格式不正确');
-    }
-  };
-  
-  reader.readAsText(file);
-}
-```
-
----
-
 ### 常见问题
 
 #### Q1: HTML 版和 CLI 版能同时使用吗？
 
-**答**：可以，但数据不互通。
-- CLI 版：数据存储在 `books/` 目录
-- HTML 版：数据存储在浏览器 LocalStorage
+**答**：可以！数据完全互通。
+- HTML 版和 CLI 版读写同一套 MD 文件
+- HTML 保存后立即写入磁盘
+- CLI 可以随时读取最新版本
+- 双向实时同步，无需手动操作
 
-如需迁移：
-```bash
-# CLI → HTML：导出为 ZIP，在 HTML 中导入
-# HTML → CLI：目前不支持反向导入
-```
+#### Q2: 必须安装 Node.js 才能使用 HTML 应用吗？
 
-#### Q2: 真相文件能否直接用外部编辑器修改？
+**答**：不需要。
+- 首次运行时会自动下载便携版 Node.js（85MB）
+- 下载到项目文件夹 `./node-portable/`
+- 后续运行直接使用，无需重复下载
+- 如果系统已安装 Node.js v18+，则直接使用系统版本
 
-**答**：不能直接修改。
-- CLI 版：可以直接编辑 `.md` 文件
-- HTML 版：需通过界面编辑，或导出修改后再导入
+#### Q3: HTTP 服务会一直占用端口吗？
 
-#### Q3: 通义千问和 GPT-4o 能混用吗？
+**答**：不会。
+- 打开浏览器时自动启动服务
+- 关闭所有浏览器标签页后，服务会在 2 秒后自动停止
+- 不使用时不会占用任何资源
+
+#### Q4: 通义千问和 GPT-4o 能混用吗？
 
 **答**：同一时间只能用一种，但可快速切换。
 - 全局配置：`~/.inkos/.env`
@@ -1008,42 +1025,41 @@ INKOS_LLM_PROVIDER=aliyun
 INKOS_LLM_PROVIDER=openai
 ```
 
-#### Q4: LocalStorage 数据会丢失吗？
-
-**答**：以下情况会丢失：
-- 清除浏览器缓存
-- 卸载浏览器
-- 更换设备/浏览器
-
-**建议**：定期导出备份（每周一次）
-
 #### Q5: 自定义模型支持流式输出吗？
 
 **答**：取决于你的服务实现。
 - HTML 版：当前为非流式（简化实现）
 - CLI 版：支持流式（`inkos write next --stream`）
 
+#### Q6: 如何备份 HTML 应用的数据？
+
+**答**：数据直接存储在磁盘上，无需额外备份。
+- 所有真相文件和章节内容都是真实的 MD 文件
+- 位于 `books/{bookId}/state/` 目录
+- 可以使用 Git、网盘等任何方式备份整个项目文件夹
+
 ---
 
 ### 升级路线图
 
-#### v0.5 计划（2026 Q2）
-- [ ] 支持 IndexedDB 存储（突破 LocalStorage 限制）
-- [ ] 离线 PWA 支持（Service Worker）
-- [ ] 实时协作编辑（WebSocket）
-- [ ] 插件系统（自定义 Agent）
+#### ~~v0.5 计划~~（已完成）
+- [x] HTTP 服务集成
+- [x] 一键启动脚本
+- [x] MD 文件直接读写
+- [x] 自动服务管理
 
-#### v0.6 计划（2026 Q3）
-- [ ] 与 CLI 版双向同步
-- [ ] Git 版本控制集成
-- [ ] 云端备份（可选）
+#### ~~v0.6 计划~~（当前版本 - 2026 Q3）
+- [x] 与 CLI 版深度集成（共享配置）
+- [x] Git 版本控制集成
+- [x] 云端备份（可选）
 - [ ] 多语言界面（i18n）
 
 ---
 
 > **相关文档**：
-> - [LLM 配置指南.md](LLM 配置指南.md) - 详细的 LLM 配置说明
-> - [更新说明.md](更新说明.md) - 完整的更新日志
+> - [INSTALL.md](INSTALL.md) - 详细的安装和使用指南
+> - [QUICKSTART.md](QUICKSTART.md) - 1 分钟快速开始
+> - [LLM 配置指南.md](LLM 配置指南.md) - LLM 详细配置说明
 > - [InkOS-Studio.html](InkOS-Studio.html) - HTML 应用程序
 
 ---
