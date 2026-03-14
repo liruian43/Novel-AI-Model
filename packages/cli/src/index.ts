@@ -21,16 +21,18 @@ import { detectCommand } from "./commands/detect.js";
 import { styleCommand } from "./commands/style.js";
 import { analyticsCommand } from "./commands/analytics.js";
 import { importCommand } from "./commands/import.js";
+import { configWizardCommand } from "./commands/config-wizard.js";
 
 const program = new Command();
 
 program
   .name("inkos")
   .description("InkOS — Multi-agent novel production system")
-  .version("0.3.6");
+  .version("0.4.0");
 
 program.addCommand(initCommand);
 program.addCommand(configCommand);
+program.addCommand(configWizardCommand);
 program.addCommand(bookCommand);
 program.addCommand(writeCommand);
 program.addCommand(reviewCommand);

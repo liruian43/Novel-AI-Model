@@ -19,7 +19,7 @@ export interface LLMMessage {
 }
 
 export interface LLMClient {
-  readonly provider: "openai" | "anthropic";
+  readonly provider: "openai" | "anthropic" | "aliyun" | "custom";
   readonly apiFormat: "chat" | "responses";
   readonly _openai?: OpenAI;
   readonly _anthropic?: Anthropic;
@@ -76,9 +76,11 @@ export function createLLMClient(config: LLMConfig): LLMClient {
       defaults,
     };
   }
-  // openai or custom — both use OpenAI SDK
+  
+  // aliyun (通义千问), custom, or openai — all use OpenAI SDK
+  const providerName = config.provider === "aliyun" ? "aliyun" : config.provider === "custom" ? "custom" : "openai";
   return {
-    provider: "openai",
+    provider: providerName,
     apiFormat,
     _openai: new OpenAI({ apiKey: config.apiKey, baseURL: config.baseUrl }),
     defaults,

@@ -18,6 +18,76 @@
 
 ---
 
+> [!IMPORTANT]
+> ## 🔥 私有升级版本说明 (v0.4-HTML)
+> 
+> **本仓库在原项目基础上进行了以下私有化升级：**
+> 
+> ### ✨ 新增功能
+> 
+> #### 1. 🌐 HTML 图形界面应用程序
+> - **双击即用**：无需安装 Node.js 和任何依赖，双击 `InkOS-Studio.html` 即可使用
+> - **完整功能**：保留原 CLI 所有核心功能（书籍管理、智能写作、章节审阅、AIGC 检测等）
+> - **本地存储**：使用浏览器 LocalStorage 保存数据，支持导入导出
+> - **跨平台**：Windows 10/11、macOS、Linux + 主流浏览器（Chrome/Edge/Firefox）
+> - **操作指引**：内置详细的使用帮助和 FAQ
+> 
+> #### 2. 🤖 扩展 LLM 支持
+> - **阿里云通义千问**：原生支持 Qwen 系列模型（qwen-plus/qwen-max/qwen-turbo）
+>   - 国内可直接访问，无需代理
+>   - 支持支付宝/微信支付
+>   - 中文创作能力强，性价比高
+> - **自定义大模型**：支持任意 OpenAI 兼容接口
+>   - 本地部署：Ollama、vLLM、LocalAI 等
+>   - 第三方服务：DeepSeek、Moonshot、智谱 AI 等
+> - **配置向导**：交互式命令行工具 (`inkos wizard`)，图形化选择提供商
+> 
+> #### 3. 📚 真相文件可视化
+> - 7 个真相文件全部支持在线查看和管理
+> - 支持单个文件导出为 MD 格式
+> - 一键导出全部真相文件和章节内容为 ZIP
+> 
+> ### 📁 新增文件
+> ```
+> inkos/
+> ├── InkOS-Studio.html          # ⭐ HTML 应用程序（双击运行）
+> ├── LLM 配置指南.md              # ⭐ 详细的 LLM 配置说明
+> ├── 更新说明.md                  # ⭐ 私有升级详细说明
+> └── packages/
+>     └── cli/src/commands/
+>         └── config-wizard.ts   # ⭐ 交互式配置向导
+> ```
+> 
+> ### 🚀 快速开始（HTML 版）
+> ```bash
+> # 方式一：图形界面（推荐）
+> 双击打开 InkOS-Studio.html
+> 
+> # 方式二：CLI 配置向导
+> inkos wizard
+> 
+> # 方式三：手动配置.env
+> INKOS_LLM_PROVIDER=aliyun              # 通义千问
+> INKOS_LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+> INKOS_LLM_API_KEY=sk-your-key
+> INKOS_LLM_MODEL=qwen-plus
+> ```
+> 
+> ### 📊 与原项目的对比
+> 
+> | 特性 | 原 CLI 项目 | 私有升级版 |
+> |------|-----------|-----------|
+> | **使用门槛** | 需安装 Node.js | 双击即用 |
+> | **LLM 支持** | OpenAI/Anthropic | + 通义千问 + 自定义 |
+> | **界面** | 命令行 | 图形界面 + CLI |
+> | **真相文件** | 磁盘 MD 文件 | 可视化查看 + 可导出 |
+> | **配置方式** | 编辑.env | 图形界面/向导/CLI |
+> | **数据存储** | 文件系统 | LocalStorage + 可导出 |
+> 
+> > **注意**：私有升级版完全兼容原项目功能，所有 CLI 命令仍然可用。
+> 
+> ---
+
 Agent 写小说。写、审、改，全程接管。
 
 ## v0.4 更新
@@ -341,16 +411,36 @@ inkos init my-novel     # 初始化项目
 
 ```bash
 # 必填
-INKOS_LLM_PROVIDER=openai                        # openai / anthropic
+INKOS_LLM_PROVIDER=openai                        # openai / anthropic / aliyun / custom
+                                                   # - openai: OpenAI GPT 系列
+                                                   # - anthropic: Anthropic Claude 系列
+                                                   # - aliyun: 阿里云通义千问 (Qwen) ⭐新增
+                                                   # - custom: 自定义大模型 (OpenAI 兼容) ⭐新增
 INKOS_LLM_BASE_URL=https://api.openai.com/v1     # API 地址（支持中转站）
+                                                   # 通义千问：https://dashscope.aliyuncs.com/compatible-mode/v1
 INKOS_LLM_API_KEY=sk-xxx                          # API Key
 INKOS_LLM_MODEL=gpt-4o                            # 模型名
+                                                   # 通义千问：qwen-plus / qwen-max / qwen-turbo
 
 # 可选
 # INKOS_LLM_TEMPERATURE=0.7                       # 温度
 # INKOS_LLM_MAX_TOKENS=8192                        # 最大输出 token
 # INKOS_LLM_THINKING_BUDGET=0                      # Anthropic 扩展思考预算
 ```
+
+**常用模型推荐**:
+
+| 提供商 | 模型 | 特点 | 适用场景 |
+|--------|------|------|----------|
+| **OpenAI** | gpt-4o | 综合能力最强 | 高质量长篇创作 |
+| | gpt-4-turbo | 性价比高 | 日常连载 |
+| | gpt-3.5-turbo | 经济实惠 | 快速生成草稿 |
+| **Anthropic** | claude-3-5-sonnet-20241022 | 文本自然度高 | 文学创作 |
+| | claude-3-opus-20240229 | 上下文理解强 | 复杂剧情 |
+| **阿里云** ⭐ | qwen-plus | 中文能力强，性价比高 | 日常写作推荐 |
+| | qwen-max | 最强性能 | 复杂场景 |
+| | qwen-turbo | 速度快，成本低 | 快速生成 |
+| **自定义** | 任意 OpenAI 兼容模型 | 灵活定制 | 本地部署/第三方服务 |
 
 项目 `.env` 会覆盖全局配置。不需要覆盖时可以不写。
 
@@ -401,6 +491,63 @@ inkos up                       # 守护进程模式
 | `inkos up / down` | 启动/停止守护进程 |
 
 `[id]` 参数在项目只有一本书时可省略，自动检测。所有命令支持 `--json` 输出结构化数据。`draft`/`write next`/`book create` 支持 `--context` 传入创作指导，`--words` 覆盖每章字数（OpenClaw 可逐章动态控制）。
+
+## LLM 提供商配置 ⭐
+
+InkOS 支持多种大语言模型提供商：
+
+### OpenAI (GPT 系列)
+```bash
+INKOS_LLM_PROVIDER=openai
+INKOS_LLM_BASE_URL=https://api.openai.com/v1
+INKOS_LLM_MODEL=gpt-4o
+```
+
+### Anthropic (Claude 系列)
+```bash
+INKOS_LLM_PROVIDER=anthropic
+INKOS_LLM_BASE_URL=https://api.anthropic.com
+INKOS_LLM_MODEL=claude-3-5-sonnet-20241022
+```
+
+### 阿里云通义千问 (Qwen) ⭐ 新增
+```bash
+INKOS_LLM_PROVIDER=aliyun
+INKOS_LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+INKOS_LLM_MODEL=qwen-plus        # 或 qwen-max, qwen-turbo
+```
+
+**开通步骤**:
+1. 访问 [阿里云百炼平台](https://bailian.console.aliyun.com/)
+2. 注册/登录阿里云账号
+3. 进入"API-KEY 管理"创建新的 API Key
+4. 确保开通 Qwen 模型服务
+5. 复制 API Key 到配置文件
+
+**推荐模型**:
+- `qwen-plus`: 性价比高，推荐用于日常写作
+- `qwen-max`: 最强性能，适合复杂场景
+- `qwen-turbo`: 速度快，成本低
+
+### 自定义大模型 (Custom) ⭐ 新增
+```bash
+INKOS_LLM_PROVIDER=custom
+INKOS_LLM_BASE_URL=<你的自定义 API 地址>
+INKOS_LLM_MODEL=<你的模型名称>
+```
+
+**适用场景**:
+- 本地部署的开源模型 (Ollama, vLLM, LocalAI 等)
+- 其他第三方 OpenAI 兼容服务 (DeepSeek, Moonshot, 智谱 AI 等)
+- 企业私有化部署模型
+
+**常见兼容服务示例**:
+- **Ollama**: `http://localhost:11434/v1`
+- **DeepSeek**: `https://api.deepseek.com/v1`
+- **Moonshot**: `https://api.moonshot.cn/v1`
+- **智谱 AI**: `https://open.bigmodel.cn/api/paas/v4`
+
+详细配置说明请查看 [LLM 配置指南](LLM 配置指南.md)。
 
 ## 实测数据
 
@@ -508,6 +655,398 @@ pnpm dev          # 监听模式
 pnpm test         # 运行测试
 pnpm typecheck    # 类型检查
 ```
+
+---
+
+## 🔧 私有升级详细说明
+
+> 本章节详细介绍 v0.4-HTML 私有升级版本的技术实现和使用细节。
+
+### 目录
+
+- [HTML 应用程序架构](#html-应用程序架构)
+- [真相文件处理机制](#真相文件处理机制)
+- [LLM 扩展实现](#llm 扩展实现)
+- [数据持久化方案](#数据持久化方案)
+- [常见问题](#常见问题)
+
+---
+
+### HTML 应用程序架构
+
+#### 技术栈
+- **纯静态 HTML**：单文件包含所有 CSS/JS，无需构建工具
+- **LocalStorage 存储**：浏览器本地持久化，最大 5-10MB
+- **原生 JavaScript**：无第三方依赖（除可选的 JSZip 用于导出）
+
+#### 核心模块
+
+```
+InkOS-Studio.html
+├── 状态管理 (APP_STATE)
+│   ├── books: []              # 书籍列表
+│   ├── chapters: []           # 章节缓存
+│   ├── truthFiles: {}         # 真相文件集合
+│   └── config: {}             # LLM 配置
+├── 页面系统
+│   ├── dashboard              # 工作台
+│   ├── books                  # 书籍管理
+│   ├── write                  # 智能写作
+│   ├── review                 # 章节审阅
+│   ├── detect                 # AIGC 检测
+│   ├── style                  # 文风仿写
+│   ├── truth-files            # 真相文件
+│   ├── config                 # 配置管理
+│   └── help                   # 使用帮助
+└── 工具函数
+    ├── localStorage 读写
+    ├── 文件导入导出
+    └── API 调用封装
+```
+
+#### 与原 CLI 的映射关系
+
+| CLI 命令 | HTML 功能 | 说明 |
+|---------|----------|------|
+| `inkos book create` | 书籍管理 → 创建新书 | 相同逻辑，图形界面 |
+| `inkos book list` | 书籍管理 → 书籍列表 | 卡片式展示 |
+| `inkos write next` | 智能写作 → 开始写作 | 管线步骤可视化 |
+| `inkos draft` | 智能写作 → 草稿生成 | 相同 |
+| `inkos audit` | 章节审阅 → 审计报告 | 32 维度展示 |
+| `inkos revise` | 章节审阅 → 修订本章 | spot-fix 模式 |
+| `inkos detect` | AIGC 检测 | 书籍检测 + 文本检测 |
+| `inkos style analyze` | 文风仿写 → 分析 | 统计指纹提取 |
+| `inkos style import` | 文风仿写 → 导入 | 应用到书籍 |
+| `inkos config` | 配置管理 | 图形化配置 |
+| `inkos export` | 书籍管理 → 导出 | MD/TXT格式 |
+
+---
+
+### 真相文件处理机制
+
+#### 原 CLI 项目 vs HTML 应用
+
+```
+【CLI 项目 - 真实文件系统】
+books/
+└── 吞天魔帝/
+    └── state/
+        ├── current_state.md       ← 真实 MD 文件
+        ├── particle_ledger.md     ← 真实 MD 文件
+        └── ...                    ← 7 个文件
+
+【HTML 应用 - LocalStorage】
+localStorage {
+  "inkos_studio_state": "{
+    \"truthFiles\": {
+      \"book_xxx\": {
+        \"current_state.md\": \"# 内容...\",
+        \"particle_ledger.md\": \"# 内容...\",
+        ...
+      }
+    }
+  }"
+}
+```
+
+#### 真相文件同步策略
+
+**当前实现**（只读模式）：
+- ✅ HTML 应用初始化时从模板创建 7 个真相文件
+- ✅ 每次写作后自动更新 `chapter_summaries.md`
+- ✅ 支持在界面查看和编辑所有内容
+- ⚠️ 不会自动同步到磁盘 MD 文件
+
+**导出功能**（手动触发）：
+```javascript
+// 一键导出某本书的全部真相文件
+function exportBookWithTruthFiles(bookId) {
+  const book = APP_STATE.books.find(b => b.id === bookId);
+  const truthFiles = APP_STATE.truthFiles[bookId];
+  
+  // 创建 ZIP 包
+  const zip = new JSZip();
+  zip.folder(`${book.title}/state`);
+  
+  // 添加 7 个真相文件
+  Object.entries(truthFiles).forEach(([name, content]) => {
+    zip.file(`state/${name}`, content);
+  });
+  
+  // 添加章节内容
+  book.chapters.forEach(ch => {
+    zip.file(`story/chapter_${ch.number}.txt`, ch.content);
+  });
+  
+  // 下载 ZIP
+  downloadFile(`${book.title}_complete.zip`, blob);
+}
+```
+
+#### 真相文件结构
+
+每个真相文件的初始模板：
+
+```markdown
+# current_state.md
+## 角色位置
+## 关系网络
+## 已知信息
+## 情感弧线
+
+# particle_ledger.md
+## 物品
+## 金钱
+## 物资
+
+# pending_hooks.md
+## 铺垫
+## 承诺
+## 未解决冲突
+
+# chapter_summaries.md
+## 第 X 章
+- 出场人物：
+- 关键事件：
+- 状态变化：
+- 伏笔动态：
+
+# subplot_board.md
+## A 线
+## B 线
+## C 线
+
+# emotional_arcs.md
+## 角色名 - 情绪轨迹
+
+# character_matrix.md
+## 角色交互记录
+```
+
+---
+
+### LLM 扩展实现
+
+#### Provider 类型扩展
+
+**原项目支持**：
+```typescript
+type LLMProvider = "openai" | "anthropic";
+```
+
+**升级后**：
+```typescript
+type LLMProvider = "openai" | "anthropic" | "aliyun" | "custom";
+```
+
+#### 通义千问配置
+
+```typescript
+// provider.ts
+if (config.provider === "aliyun") {
+  return {
+    provider: "aliyun",
+    apiFormat: "chat",
+    _openai: new OpenAI({ 
+      apiKey: config.apiKey, 
+      baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1" 
+    }),
+    defaults: { temperature: 0.7, maxTokens: 8192 }
+  };
+}
+```
+
+通义千问使用 OpenAI SDK 的原因：
+- 阿里云百炼提供 OpenAI 兼容接口
+- 无需修改现有调用逻辑
+- 统一处理方式
+
+#### 自定义模型配置
+
+```typescript
+// 任何符合以下格式的 service 都可接入
+POST /v1/chat/completions
+{
+  "model": "your-model",
+  "messages": [...],
+  "temperature": 0.7
+}
+
+Response:
+{
+  "choices": [{
+    "message": { "content": "..." }
+  }]
+}
+```
+
+#### 配置向导实现
+
+```bash
+$ inkos wizard
+
+╔════════════════════════════════════════╗
+║   InkOS LLM 配置向导                   ║
+╚════════════════════════════════════════╝
+
+请选择 AI 服务提供商:
+  1. OpenAI (GPT-4o/GPT-3.5)
+  2. Anthropic (Claude 系列)
+  3. 阿里云通义千问 (Qwen) ⭐ 推荐国内用户
+  4. 自定义大模型 (OpenAI 兼容)
+
+请选择 (输入数字): 3
+
+API Base URL [默认：https://dashscope.aliyuncs.com/compatible-mode/v1]: 
+API Key: sk-xxx
+选择模型:
+  1. qwen-plus (推荐)
+  2. qwen-max
+  3. qwen-turbo
+
+✅ 配置完成！保存到 ~/.inkos/.env
+```
+
+---
+
+### 数据持久化方案
+
+#### LocalStorage 限制与对策
+
+**限制**：
+- 容量：5-10MB（因浏览器而异）
+- 数据类型：仅支持字符串
+- 作用域：同源策略（协议 + 域名 + 端口）
+
+**对策**：
+```javascript
+// 1. 序列化前压缩
+function saveToStorage() {
+  const jsonStr = JSON.stringify(APP_STATE);
+  // 简单压缩：移除多余空格
+  const compressed = jsonStr.replace(/\s+/g, ' ');
+  localStorage.setItem('inkos_studio_state', compressed);
+}
+
+// 2. 定期备份提醒
+function checkStorageUsage() {
+  const usage = new Blob([localStorage.getItem('inkos_studio_state')]).size;
+  if (usage > 4 * 1024 * 1024) { // 4MB 告警
+    showToast('warning', '存储空间即将用满，建议导出数据');
+  }
+}
+
+// 3. 导出功能
+function exportAllData() {
+  const dataStr = JSON.stringify(APP_STATE, null, 2);
+  downloadFile(`inkos_backup_${Date.now()}.json`, dataStr);
+}
+```
+
+#### 数据恢复流程
+
+```javascript
+// 导入备份文件
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      
+      // 合并数据（保留现有配置）
+      APP_STATE = {
+        ...imported,
+        config: APP_STATE.config // 保留当前 API 配置
+      };
+      
+      saveToStorage();
+      showToast('success', '数据导入成功');
+    } catch (err) {
+      showToast('error', '导入失败：文件格式不正确');
+    }
+  };
+  
+  reader.readAsText(file);
+}
+```
+
+---
+
+### 常见问题
+
+#### Q1: HTML 版和 CLI 版能同时使用吗？
+
+**答**：可以，但数据不互通。
+- CLI 版：数据存储在 `books/` 目录
+- HTML 版：数据存储在浏览器 LocalStorage
+
+如需迁移：
+```bash
+# CLI → HTML：导出为 ZIP，在 HTML 中导入
+# HTML → CLI：目前不支持反向导入
+```
+
+#### Q2: 真相文件能否直接用外部编辑器修改？
+
+**答**：不能直接修改。
+- CLI 版：可以直接编辑 `.md` 文件
+- HTML 版：需通过界面编辑，或导出修改后再导入
+
+#### Q3: 通义千问和 GPT-4o 能混用吗？
+
+**答**：同一时间只能用一种，但可快速切换。
+- 全局配置：`~/.inkos/.env`
+- 项目配置：项目根目录 `.env`（优先级更高）
+
+```bash
+# 切换到通义千问
+INKOS_LLM_PROVIDER=aliyun
+
+# 切换回 GPT-4o
+INKOS_LLM_PROVIDER=openai
+```
+
+#### Q4: LocalStorage 数据会丢失吗？
+
+**答**：以下情况会丢失：
+- 清除浏览器缓存
+- 卸载浏览器
+- 更换设备/浏览器
+
+**建议**：定期导出备份（每周一次）
+
+#### Q5: 自定义模型支持流式输出吗？
+
+**答**：取决于你的服务实现。
+- HTML 版：当前为非流式（简化实现）
+- CLI 版：支持流式（`inkos write next --stream`）
+
+---
+
+### 升级路线图
+
+#### v0.5 计划（2026 Q2）
+- [ ] 支持 IndexedDB 存储（突破 LocalStorage 限制）
+- [ ] 离线 PWA 支持（Service Worker）
+- [ ] 实时协作编辑（WebSocket）
+- [ ] 插件系统（自定义 Agent）
+
+#### v0.6 计划（2026 Q3）
+- [ ] 与 CLI 版双向同步
+- [ ] Git 版本控制集成
+- [ ] 云端备份（可选）
+- [ ] 多语言界面（i18n）
+
+---
+
+> **相关文档**：
+> - [LLM 配置指南.md](LLM 配置指南.md) - 详细的 LLM 配置说明
+> - [更新说明.md](更新说明.md) - 完整的更新日志
+> - [InkOS-Studio.html](InkOS-Studio.html) - HTML 应用程序
+
+---
 
 ## 许可证
 
